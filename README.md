@@ -38,11 +38,12 @@
   - In the recent years, generative AI has changed our daily life and even our working style because of their potential and flexibility to various tasks. At the same time, our opportunities to interact with AI itself are increasing much more than ever and we are starting to trust AI gradually. In order to make AI more convincing to human, it is crucial to let them have human-like appearance and expressions, namely digital humans. The most difficulty is synthesizing convincing facial expression against human who are really sensitive to facial expression as we described with "the uncanny valley" [reference](Mori2017TheUV). Especially, generating reliable facial expression in real-time requires us to parameterize them in low-dimensional space. One of parametric face models, so-called morphable model, could be obtained by principal component analysis on the aligned face templates on scans. Thies et al. used this model and develop to realize real-time facial reenactment of a monocular target video. The one of drawbacks of PCA model is that the target identity is only described by texture and shape of the face model. While people have different movement to express same expression, this type of techniques cannot synthesize personalized facial expression because they are synthesized average facial expressions by referring global expression change directions (global principal components). In this proposal, we are going to approximate distribution of target's facial expression (without calibration) by using nearest neighbor estimation techniques within parametric model to realize "personalized" and characteristic facial expression for more convincing digital human realization. While synthesis of personalized facial expression is implemented easily by calibration of the target's facial expression parameters and applying PCA on them, we have already known that statistical techniques can be applied on scanned human faces and it enables us to parameterize our complicated facial expression to some extent. By extending this knowledge, we aim to infer the distribution by referring data distribution in a parametric model and investigate the effectiveness of personalization (characterization) of facial expression compared to global parameterization techniques. 
 ## Technical Approach
   - How do you propose to solve it
+  - We parameterize face model by $\mathbf{P}=(\Phi, \alpha, \beta, \delta, \gamma)$
   - Approach 1 (K-means clustering)
     - Apply K-means clustering on dataset
       - Obtain centroids (means of face vertices positions)
       - Obtain averaged $\mathbf{Eexp}$ per cluster
-    - In preprocessing, we estimate $\Phi$ (Shape identity) and $\Beta$ (Material/Albedo) as Face2Face does.
+    - In preprocessing, we estimate $\Phi$ (Shape identity) and $\beta$ (Material/Albedo) as Face2Face does.
     - By using estimated parameters, find a closest cluster and obtain its centroid and $\mathbf{Eexp}$
     - Use them as the principal component of the facial expressions
     - Construct energy function
@@ -54,11 +55,9 @@
     - It can be used as input to get a descriptor of the identity.
     - Since we have vertex correspondences between space face meshes within database, we can use some metric which are used for energy minimization in Non-rigid 3D reconstruction (Mesh deformation)
     - As we measure deviation from rigidity by summing up deviation with respect to a fan, we can obtain "Face skeletal structure" difference between a target person and one from dataset
-    $$
-        \mathbf{E_{fss} = \sum_i\sum_{j\in\mathcal{N}(i)} ||(vi-vj)-(vi'-vj')||^2}
-        \\
-        \text{for ith vertex fan}
-    $$
+    
+    $$\mathbf{E_{fss} = \sum_i\sum_{j\in\mathcal{N}(i)} ||(vi-vj)-(vi'-vj')||^2}\\\text{for ith vertex fan}$$
+
     - Matching strategy
       1. Target vs one from parametric model and try to find a face model which has the highest similarity
       2. Target vs average face descriptor from clusters and find a cluster which has the highest similarity
