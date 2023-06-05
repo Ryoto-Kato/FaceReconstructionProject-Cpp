@@ -56,13 +56,14 @@
     - Since we have vertex correspondences between space face meshes within database, we can use some metric which are used for energy minimization in Non-rigid 3D reconstruction (Mesh deformation)
     - As we measure deviation from rigidity by summing up deviation with respect to a fan, we can obtain "Face skeletal structure" difference between a target person and one from dataset
     
-    $$\mathbf{E_{fss} = \sum_i\sum_{j\in\mathcal{N}(i)} ||(vi-vj)-(vi'-vj')||^2}\\\text{for ith vertex fan}$$
+    $$\mathbf{E_{fss} = \sum_i\sum_{j\in\mathcal{N}(i)} ||(vi-vj)-(vi'-vj')||^2}$$
+    $$\text{for ith vertex fan}$$
 
     - Matching strategy
       1. Target vs one from parametric model and try to find a face model which has the highest similarity
       2. Target vs average face descriptor from clusters and find a cluster which has the highest similarity
     - By matching, we will obtain the 
-    - In preprocessing, we estimate $\Phi$ (Shape identity) and $\Beta$ (Material/Albedo) as Face2Face does.
+    - In preprocessing, we estimate $\Phi$ (Shape identity) and $\beta$ (Material/Albedo) as Face2Face does.
     - We derive a certain structure $\mathbf{Eexp}$ and its standard deviation by referring nearest neighboring face model $\mathbf{Eexp}$ and its standard deviation
   - ,
 ## Requirements
