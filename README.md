@@ -35,10 +35,14 @@
 
 # Proposals (Deadline: June 9)
 - Overleaf
-## Introduction/Abstract (including second proposal)
+## Introduction (including second proposal) (Abstract)
   - **Describe the problen you want to solve and why**
   - In the recent years, generative AI has changed our daily life and even our working style because of their potential and flexibility to various tasks. At the same time, our opportunities to interact with AI itself are increasing much more than ever and we are starting to trust AI gradually. In order to make AI more convincing to human, it is crucial to let them have human-like appearance and expressions, namely digital humans. The most difficulty is synthesizing convincing facial expression against human who are really sensitive to facial expression as we described with "the uncanny valley" [reference](Mori2017TheUV). Especially, generating reliable facial expression in real-time requires us to parameterize them in low-dimensional space. One of parametric face models, so-called morphable model, could be obtained by principal component analysis on the aligned face templates on scans. Thies et al. used this model and develop to realize real-time facial reenactment of a monocular target video. The one of drawbacks of PCA model is that the target identity is only described by texture and shape of the face model. While people have different movement to express same expression, this type of techniques cannot synthesize personalized facial expression because they are synthesized average facial expressions by referring global expression change directions (global principal components). In this proposal, we are going to approximate distribution of target's facial expression (without calibration) by using nearest neighbor estimation techniques within parametric model to realize "personalized" and characteristic facial expression for more convincing digital human realization. While synthesis of personalized facial expression is implemented easily by calibration of the target's facial expression parameters and applying PCA on them, we have already known that statistical techniques can be applied on scanned human faces and it enables us to parameterize our complicated facial expression to some extent. By extending this knowledge, we aim to infer the distribution by referring data distribution in a parametric model and investigate the effectiveness of personalization (characterization) of facial expression compared to global parameterization techniques. 
-## Technical Approach
+
+## Abstract
+
+
+## Technical Approach (Kevin)
   - How do you propose to solve it
   - We parameterize face model by $\mathbf{P}=(\Phi, \alpha, \beta, \delta, \gamma)$
   - Approach 1 (K-means clustering)
@@ -70,11 +74,65 @@
   - ,
 ## Requirements
   - Which datasets & libraries will you need ?
-  - [Facial Landmark detection](https://github.com/ci2cv/face-analysis-sdk)
-  - [Dataset](https://vcai.mpi-inf.mpg.de/projects/MonFaceCap/#dataset)
+  - [Facial Landmark detection]
+    - off-the-shelf
+      - OpenPose
+      - Media pipe
+      - OpenCV
+      - https://github.com/ci2cv/face-analysis-sdk
+      - Dlib
+  - [Dataset] 
+    - https://github.com/cleardusk/3DDFA/tree/master
+    - https://vcai.mpi-inf.mpg.de/projects/MonFaceCap/#dataset
+    - Face warehouse(Face model (Scanned data), email required)
+    - IASLAB-RGB D dataset(c++ library for visualization)
+  - [Landmark](https://github.com/anilbas/BFMLandmarks)
+  - Optimizer (ceres)
+  - Eigen
+  - OpenCV
+  - OpenGL
   - 
-## Milestones
+
+## Useful
+- Basel Face model viewer (2019)
+- Basel Face model 
+  - https://faces.dmi.unibas.ch/bfm/bfm2017.html
+  - 
+
+## Process
+- Input :RGB-D data
+  - Pre-computation
+    - Pose estimate
+  - Runtime
+    - Other parameters estimation
+- Output:
+  - Reconstructed face model and estimate parameters
+- Comparison:
+  - Visualization of energy-term (vertex space distance)
+  - Visualization of results
+  - Visualization of expression transfer
+
+## Milestones (Sturgis)
   - Time estimate, tasks
+    - Decide dataset
+    - Get data set
+    - Get familiar with dataset
+    - Data-loader function
+    - Landmark detector
+    - Check the landmark corresponding
+    - Landmark-based Pose estimation (Procrustes w.r.t landmarks)
+      - Backproject the landmark
+      - Exercise1
+      - Exercise3
+      - Get pose of model
+    - check the Camera intrinsic in face models (if we need)
+    - Dense matching
+    - Experiment
+      - Dense, Sparse, and Albedo
+        - RGB-D example input
+        - Identity estimation
+        - Expression estimation
+
     - PCA (if we do not have parametric model data base and only scanning data)
       - Align template to the every scanned face
       - PCA of the aligned face mesh
@@ -130,5 +188,13 @@
 
 # Topic: 3D Face reconstruction
 
+- Requirement
+  - Basel Face Model with face landmark corresponding
+    - PCA model (2017)
+    - [viewer](https://github.com/unibas-gravis/basel-face-model-viewer)
+    - 
+  - Key landmark detection (Dlib library)
+    - 
+  - 
 
 
