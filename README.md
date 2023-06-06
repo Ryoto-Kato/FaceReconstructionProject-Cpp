@@ -3,16 +3,20 @@
 ## Members [[team_list](https://docs.google.com/spreadsheets/d/1KcEIfJHHQVqG12gHMNQo_0s5yTAw82hNx3K4T5NtPMY/edit#gid=0)]
 
     - Ben Robert Sturgis	03776460	
-    - Kevin	Qu	            03730587	
+    - Kevin	Qu	          03730587	
     - Marco	Busch	        03779574	
     - Ryoto	Kato	        03767467
 
 
 
 # Tasks
+- June 08
+  - Complete drafts for proposal (individually each part of it)
 - June 09
   - [x] Project topic
   - [x] Apply as a team via Google Form 
+  - [ ] **Check drafts before meeting !**
+  - [ ] Meeting 14:00-
   - [ ] Create proposal (Overleaf Latex)
   - [ ] Submit proposal
 - June 16
@@ -34,13 +38,16 @@
   - [ ] 5 mins videos
 
 # Proposals (Deadline: June 9)
-- Overleaf
-## Introduction (including second proposal) (Abstract)
-  - **Describe the problen you want to solve and why**
-  - In the recent years, generative AI has changed our daily life and even our working style because of their potential and flexibility to various tasks. At the same time, our opportunities to interact with AI itself are increasing much more than ever and we are starting to trust AI gradually. In order to make AI more convincing to human, it is crucial to let them have human-like appearance and expressions, namely digital humans. The most difficulty is synthesizing convincing facial expression against human who are really sensitive to facial expression as we described with "the uncanny valley" [reference](Mori2017TheUV). Especially, generating reliable facial expression in real-time requires us to parameterize them in low-dimensional space. One of parametric face models, so-called morphable model, could be obtained by principal component analysis on the aligned face templates on scans. Thies et al. used this model and develop to realize real-time facial reenactment of a monocular target video. The one of drawbacks of PCA model is that the target identity is only described by texture and shape of the face model. While people have different movement to express same expression, this type of techniques cannot synthesize personalized facial expression because they are synthesized average facial expressions by referring global expression change directions (global principal components). In this proposal, we are going to approximate distribution of target's facial expression (without calibration) by using nearest neighbor estimation techniques within parametric model to realize "personalized" and characteristic facial expression for more convincing digital human realization. While synthesis of personalized facial expression is implemented easily by calibration of the target's facial expression parameters and applying PCA on them, we have already known that statistical techniques can be applied on scanned human faces and it enables us to parameterize our complicated facial expression to some extent. By extending this knowledge, we aim to infer the distribution by referring data distribution in a parametric model and investigate the effectiveness of personalization (characterization) of facial expression compared to global parameterization techniques. 
+- Overleaf (CVPR)
+- Time line
 
-## Abstract
+      1. Individually write respective section by Thursday 23:59
+      2. Check them individually and note comments
+      3. Meeting on Friday
+      4. Finalize the proposal
 
+## Abstract (Ryoto)
+- Some abstraction of our proposal
 
 ## Technical Approach (Kevin)
   - How do you propose to solve it
@@ -72,7 +79,7 @@
     - In preprocessing, we estimate $\Phi$ (Shape identity) and $\beta$ (Material/Albedo) as Face2Face does.
     - We derive a certain structure $\mathbf{Eexp}$ and its standard deviation by referring nearest neighboring face model $\mathbf{Eexp}$ and its standard deviation
   - ,
-## Requirements
+## Requirements (Marco)
   - Which datasets & libraries will you need ?
   - [Facial Landmark detection]
     - off-the-shelf
@@ -91,28 +98,8 @@
   - Eigen
   - OpenCV
   - OpenGL
-  - 
 
-## Useful
-- Basel Face model viewer (2019)
-- Basel Face model 
-  - https://faces.dmi.unibas.ch/bfm/bfm2017.html
-  - 
-
-## Process
-- Input :RGB-D data
-  - Pre-computation
-    - Pose estimate
-  - Runtime
-    - Other parameters estimation
-- Output:
-  - Reconstructed face model and estimate parameters
-- Comparison:
-  - Visualization of energy-term (vertex space distance)
-  - Visualization of results
-  - Visualization of expression transfer
-
-## Milestones (Sturgis)
+## Milestones (Ben)
   - Time estimate, tasks
     - Decide dataset
     - Get data set
@@ -151,7 +138,28 @@
 - Team-Members
   - Group of 4
   
-## Reference
+
+
+# Useful information 
+- Basel Face model viewer (2019)
+- Basel Face model 
+  - https://faces.dmi.unibas.ch/bfm/bfm2017.html
+- Key landmark detection (Dlib library) 
+
+# Pipeline details
+- Input :RGB-D data
+  - Pre-computation
+    - Pose estimate
+  - Runtime
+    - Other parameters estimation
+- Output:
+  - Reconstructed face model and estimate parameters
+- Comparison:
+  - Visualization of energy-term (vertex space distance)
+  - Visualization of results
+  - Visualization of expression transfer
+
+# Reference
 - @inproceedings{Mori2017TheUV,
   title={The Uncanny Valley: The Original Essay by Masahiro Mori-IEEE Spectrum},
   author={Masahiro Mori and Karl F. Macdorman},
@@ -185,16 +193,4 @@
     - Conclusion (What was achieved, what can be achieved in future)
 - Deadline
   - Friday July 28 23:59
-
-# Topic: 3D Face reconstruction
-
-- Requirement
-  - Basel Face Model with face landmark corresponding
-    - PCA model (2017)
-    - [viewer](https://github.com/unibas-gravis/basel-face-model-viewer)
-    - 
-  - Key landmark detection (Dlib library)
-    - 
-  - 
-
 
