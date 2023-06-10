@@ -1,3 +1,6 @@
+# Organization
+- .gitignore
+  - If you want to ignore your own personal folder or files within this root directory, you can ignore them by rename it with "**personal**"
 
 # Team
 ## Members [[team_list](https://docs.google.com/spreadsheets/d/1KcEIfJHHQVqG12gHMNQo_0s5yTAw82hNx3K4T5NtPMY/edit#gid=0)]
@@ -7,179 +10,47 @@
     - Marco	Busch	        03779574	
     - Ryoto	Kato	        03767467
 
-
+# Abstract
+Faithful 3D face reconstruction and the synthesis of reliable facial expressions are an essential foundation for the generation of photorealistic virtual avatars. The entertainment industry has addressed this task by having experienced artists manually create these avatars. While they are able to deliver impressive results, it is rather impractical because of the time- and labor-intensive nature of their work. In our project, we present an approach for 3D face reconstruction which does not require labor-intensive manual work. Based on a parametric face model, we perform an analysis-by-synthesis loop to reconstruct the 3D face from a single RGB-D input image. Furthermore, we apply an expression transfer between a source person and a target person.
 
 # Tasks
-- June 08
-  - Complete drafts for proposal (individually each part of it)
-- June 09
-  - [x] Project topic
-  - [x] Apply as a team via Google Form 
-  - [ ] **Check drafts before meeting !**
-  - [ ] Meeting 14:00-
-  - [ ] Create proposal (Overleaf Latex)
-  - [ ] Submit proposal
-- June 16
+- Week 1 (10.06 - 16.06)
+  - [ ] Decided on final dataset, got access and familiarized ourselves with it
+  - [ ] Completed implementation of input/output functions as well as data transformation and prepro-
+  cessing
   - [ ] weekly report
-- June 23
+- Week 2 (17.06 - 23.06)
+  - [ ] Finished creation of a code template for orientation and better distribution of tasks, which we keep running during the entire development process
   - [ ] weekly report
-- June 30
+- Week 3 (24.06 - 30.06)
+  - [ ] Integrated suitable off-the-shelf facial landmark detector
+  - [ ] Implemented Procrustes algorithm to get an initial coarse alignment of the face model and the input RGB-D image using the obtained landmarks
   - [ ] weekly report
-- July 7
+- Week 4 (01.07 - 07.07)
+  - [ ] Defined the energy function using the Ceres library
   - [ ] weekly report
-- July 14
+- Week 5 (08.07 - 14.07)
+  - [ ] Implemented the transfer of facial expressions of a source to a target person
   - [ ] weekly report
-- July 21
+- Week 6 (15.07 - 21.07)
+  - [ ] Fixed remaining bugs and code cleanup
+  - [ ] Performed experiments to evaluate the developed face reconstruction
+  - [ ] Optional: Integrated rendering pipeline using OpenGL
   - [ ] weekly report
-- **Friday July 28 23:59**
-  - [ ] Final report
-- **August 1**
-  - [ ] Presentation
-  - [ ] 5 mins videos
+- Week 7 (22.07 - 28.07)
+  - [ ] Completion of the final report and presentation video
+  - [ ] weekly report
+- Week 8 (29.07 - 31.07)
+  - [ ] Prepared for presentation
+  - [ ] weekly report
 
 # Proposals (Deadline: June 9)
 - Overleaf (CVPR)
 - Time line
-
       1. Individually write respective section by Thursday 23:59
       2. Check them individually and note comments
       3. Meeting on Friday
       4. Finalize the proposal
-
-## 1. Abstract (Ryoto)
-- Some abstraction of our proposal
-
-## 2. Technical Approach (Kevin)
-    - Decide dataset
-    - Get data set
-    - Get familiar with dataset
-    - Data-loader function
-    - Landmark detector
-    - Check the landmark corresponding
-    - Landmark-based Pose estimation (Procrustes w.r.t landmarks)
-      - Backproject the landmark
-      - Exercise1
-      - Exercise3
-      - Get pose of model
-    - check the Camera intrinsic in face models (if we need)
-    - Dense matching
-    - Experiment
-      - Dense, Sparse, and Albedo
-        - RGB-D example input
-        - Identity estimation
-        - Expression estimation
-
-    - PCA (if we do not have parametric model data base and only scanning data)
-      - Align template to the every scanned face
-      - PCA of the aligned face mesh
-      - Obtain the parametric model
-    - Face Landmark detection and data stream
-    - Face template alignment
-    - Face expression transfer
-      - Second Proposal
-        - Find personalized Facial expression deformation components
-        - Personalized deformation coefficients
-          - Goal: approximate plausible face deformation principal components for target face by referring neighboring face model in a certain feature space (Face identity itself or face skeletal structure)
-    - Precomputing process: identify target RGB input Identity (Albedo and Identity) and Pose
-    - Texture/Lighting
-    - Rendering
-
-## 3. Requirements (Marco)
-  - Which datasets & libraries will you need ?
-
-        - [Facial Landmark detection]
-          - off-the-shelf
-            - OpenPose
-            - Media pipe
-            - OpenCV
-            - https://github.com/ci2cv/face-analysis-sdk
-            - Dlib
-        - [Dataset] 
-          - https://github.com/cleardusk/3DDFA/tree/master
-          - https://vcai.mpi-inf.mpg.de/projects/MonFaceCap/#dataset
-          - Face warehouse(Face model (Scanned data), email required)
-          - IASLAB-RGB D dataset(c++ library for visualization)
-        - [Landmark dataset]
-          - https://github.com/anilbas/BFMLandmarks
-        - [Optimizer]
-          - ceres
-        - Eigen
-        - OpenCV
-        - OpenGL
-
-## 4. Milestones (Ben)
-- Abstraction of the each step of technical approach
-    
-      - Decide dataset
-      - Get data set
-      - Get familiar with dataset
-      - Data-loader function
-      - Landmark detector
-      - Check the landmark corresponding
-      - Landmark-based Pose estimation (Procrustes w.r.t landmarks)
-        - Backproject the landmark
-        - Exercise1
-        - Exercise3
-        - Get pose of model
-      - check the Camera intrinsic in face models (if we need)
-      - Dense matching
-      - Experiment
-        - Dense, Sparse, and Albedo
-          - RGB-D example input
-          - Identity estimation
-          - Expression estimation
-
-      - PCA (if we do not have parametric model data base and only scanning data)
-        - Align template to the every scanned face
-        - PCA of the aligned face mesh
-        - Obtain the parametric model
-      - Face Landmark detection and data stream
-      - Face template alignment
-      - Face expression transfer
-        - Second Proposal
-          - Find personalized Facial expression deformation components
-          - Personalized deformation coefficients
-            - Goal: approximate plausible face deformation principal components for target face by referring neighboring face model in a certain feature space (Face identity itself or face skeletal structure)
-      - Precomputing process: identify target RGB input Identity (Albedo and Identity) and Pose
-      - Texture/Lighting
-      - Rendering 
-  
-## 5. Team members
-    - Ben Robert Sturgis	03776460	
-    - Kevin	Qu	          03730587	
-    - Marco	Busch	        03779574	
-    - Ryoto	Kato	        03767467
-
-# Useful information 
-- Basel Face model viewer (2019)
-- Basel Face model 
-  - https://faces.dmi.unibas.ch/bfm/bfm2017.html
-- Key landmark detection (Dlib library) 
-
-# Pipeline details
-- Input :RGB-D data
-  - Pre-computation
-    - Pose estimate
-  - Runtime
-    - Other parameters estimation
-- Output:
-  - Reconstructed face model and estimate parameters
-- Comparison:
-  - Visualization of energy-term (vertex space distance)
-  - Visualization of results
-  - Visualization of expression transfer
-
-# Reference
-- @inproceedings{Mori2017TheUV,
-  title={The Uncanny Valley: The Original Essay by Masahiro Mori-IEEE Spectrum},
-  author={Masahiro Mori and Karl F. Macdorman},
-  year={2017}
-}
-
-# Questions
-- How can we obtain the dataset which is also used for the Face2Face
-- We know that Face2Face used Facial Landmark detector but how can we obtain correspondence between face mesh template vertices and the detected landmark
-- 
 
 # Weekly report (Every Friday)
 - Format: Google Docs
@@ -203,38 +74,3 @@
     - Conclusion (What was achieved, what can be achieved in future)
 - Deadline
   - Friday July 28 23:59
-
-# ideas
-## Introduction (including Ryoto's proposal)
-  - **Describe the problen you want to solve and why**
-  - In the recent years, generative AI has changed our daily life and even our working style because of their potential and flexibility to various tasks. At the same time, our opportunities to interact with AI itself are increasing much more than ever and we are starting to trust AI gradually. In order to make AI more convincing to human, it is crucial to let them have human-like appearance and expressions, namely digital humans. The most difficulty is synthesizing convincing facial expression against human who are really sensitive to facial expression as we described with "the uncanny valley" [reference](Mori2017TheUV). Especially, generating reliable facial expression in real-time requires us to parameterize them in low-dimensional space. One of parametric face models, so-called morphable model, could be obtained by principal component analysis on the aligned face templates on scans. Thies et al. used this model and develop to realize real-time facial reenactment of a monocular target video. The one of drawbacks of PCA model is that the target identity is only described by texture and shape of the face model. While people have different movement to express same expression, this type of techniques cannot synthesize personalized facial expression because they are synthesized average facial expressions by referring global expression change directions (global principal components). In this proposal, we are going to approximate distribution of target's facial expression (without calibration) by using nearest neighbor estimation techniques within parametric model to realize "personalized" and characteristic facial expression for more convincing digital human realization. While synthesis of personalized facial expression is implemented easily by calibration of the target's facial expression parameters and applying PCA on them, we have already known that statistical techniques can be applied on scanned human faces and it enables us to parameterize our complicated facial expression to some extent. By extending this knowledge, we aim to infer the distribution by referring data distribution in a parametric model and investigate the effectiveness of personalization (characterization) of facial expression compared to global parameterization techniques. 
-
-## Technical Approach (including Ryoto's proposal)
-  - How do you propose to solve it
-  - We parameterize face model by $\mathbf{P}=(\Phi, \alpha, \beta, \delta, \gamma)$
-  - Approach 1 (K-means clustering)
-    - Apply K-means clustering on dataset
-      - Obtain centroids (means of face vertices positions)
-      - Obtain averaged $\mathbf{Eexp}$ per cluster
-    - In preprocessing, we estimate $\Phi$ (Shape identity) and $\beta$ (Material/Albedo) as Face2Face does.
-    - By using estimated parameters, find a closest cluster and obtain its centroid and $\mathbf{Eexp}$
-    - Use them as the principal component of the facial expressions
-    - Construct energy function
-    - Parameter Estimation as energy minimization
-    - perform **Analysis-by-Synthesis**
-
-  - Approach 2 (Face skeletal structure descriptor)
-    - By using detected facial landmarks, we obtain sparse and a low-dimensional representatives of target's face skeletal structure (facial mesh)
-    - It can be used as input to get a descriptor of the identity.
-    - Since we have vertex correspondences between space face meshes within database, we can use some metric which are used for energy minimization in Non-rigid 3D reconstruction (Mesh deformation)
-    - As we measure deviation from rigidity by summing up deviation with respect to a fan, we can obtain "Face skeletal structure" difference between a target person and one from dataset
-    
-    $$\mathbf{E_{fss} = \sum_i\sum_{j\in\mathcal{N}(i)} ||(vi-vj)-(vi'-vj')||^2}$$
-    $$\text{for ith vertex fan}$$
-
-    - Matching strategy
-      1. Target vs one from parametric model and try to find a face model which has the highest similarity
-      2. Target vs average face descriptor from clusters and find a cluster which has the highest similarity
-    - By matching, we will obtain the 
-    - In preprocessing, we estimate $\Phi$ (Shape identity) and $\beta$ (Material/Albedo) as Face2Face does.
-    - We derive a certain structure $\mathbf{Eexp}$ and its standard deviation by referring nearest neighboring face model $\mathbf{Eexp}$ and its standard deviation
