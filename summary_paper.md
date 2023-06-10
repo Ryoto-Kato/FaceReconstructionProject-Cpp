@@ -33,14 +33,13 @@ $$
 \mathcal{P} = (\mathbf{\alpha}, \mathbf{\beta}, \mathbf{\delta}, \mathbf{\gamma}, \mathcal{R}, \mathbf{t})
 $$
 - for ith vertex 
-  $$
+$$
   \mathcal{M}_{geo}(\mathbf{\alpha},{\delta}) \in \mathbf{\real}^3 = \mathbf{\alpha_{id}} + E_{id} \mathbf{\alpha} + E_{exp} \mathbf{\delta} 
-
-  \\
+$$
+$$
 
   \mathcal{M}_{alb}(\beta) \in \mathbf{\real}^3 = \mathbf{\alpha}_{alb} + E_{alb}\mathbf{\beta}
   
-  \\
 $$
 
 - Average face
@@ -146,14 +145,15 @@ $$
 $$
 \mathbf{E}_{\mathbf{point}}(\mathcal{P}) = \sum_{\mathbf{p}\in\mathcal{V}} ||d_{point}(\mathbf{p})||_2^2
 
-\\
+$$
+$$
 d_{point}(\mathbf{p}) = X_\mathcal{s}(\mathbf{p}) - X_\mathcal{\mathcal{I}}(\mathbf{p})
 
-\\
+$$
 
 X_\mathcal{s}(\mathbf{p}) : \text{observed 3D point vertex position}
 
-\\
+$$
 X_\mathcal{I}(\mathbf{p}) : \text{observed 3D point vertex position}
 
 $$
@@ -162,20 +162,21 @@ $$
 
 $$
 E_{plane}(\mathcal{P}) = \sum_{\mathbf{p}\in\mathcal{V}} [d^2_{plane}(N_s(\mathbf{p}), \mathbf{p})+d^2_{plane}(N_{\mathcal{I}}(\mathbf{p}), \mathbf{p})]
-\\
+$$
+$$
 N_s(\mathbf{p}):\text{normal vector of p}
-\\
+$$
+$$
 d_{plane}(N_s(\mathbf{p}), \mathbf{p}) = N_s(\mathbf{p})^Td_{point}(\mathbf{p})
-
 $$
 
 ## Image space Error (Color Consistency Metric)
 $$
 \mathbf{E}_{col}(\mathcal{P})=\sum_{\mathcal{p} \in \mathcal{V}} ||C_s(\mathbf{p}) - C_\mathcal{I}(\mathbf{p})||_2^2
 
-\\
+$$
 C_s(\mathbf{p}): \text{reconstructed image}
-\\
+$$
 C_\mathcal{I}(\mathbf{p}): \text{ground truth}
 $$
 
@@ -278,7 +279,7 @@ $$
 
 - Input: RGB image
 - Output: 66 2D image landmarks,
-![](CSIRO_landmark.png)
+![](\images/CSIRO_landmark.png)
 
 # Technical Approach
 - Jointly fit a parametric face model for
