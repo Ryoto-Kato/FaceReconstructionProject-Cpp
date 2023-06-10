@@ -29,18 +29,14 @@
 # Image Formation model (all parameters to be estimated)
 ### Parameter $\mathbf{P}$
 - 429 parameters in total
-$$
-\mathcal{P} = (\mathbf{\alpha}, \mathbf{\beta}, \mathbf{\delta}, \mathbf{\gamma}, \mathcal{R}, \mathbf{t})
-$$
-- for ith vertex 
-$$
-  \mathcal{M}_{geo}(\mathbf{\alpha},{\delta}) \in \mathbf{\real}^3 = \mathbf{\alpha_{id}} + E_{id} \mathbf{\alpha} + E_{exp} \mathbf{\delta} 
-$$
-$$
 
-  \mathcal{M}_{alb}(\beta) \in \mathbf{\real}^3 = \mathbf{\alpha}_{alb} + E_{alb}\mathbf{\beta}
-  
-$$
+$$\mathcal{P} = (\mathbf{\alpha}, \mathbf{\beta}, \mathbf{\delta}, \mathbf{\gamma}, \mathcal{R}, \mathbf{t})$$
+
+- for ith vertex 
+
+$$\mathcal{M}_{geo}(\mathbf{\alpha},{\delta}) \in \mathbf{\real}^3 = \mathbf{\alpha_{id}} + E_{id} \mathbf{\alpha} + E_{exp} \mathbf{\delta} $$
+
+$$\mathcal{M}_{alb}(\beta) \in \mathbf{\real}^3 = \mathbf{\alpha}_{alb} + E_{alb}\mathbf{\beta}$$
 
 - Average face
   - $\mathbf{\alpha}_{\mathbf{id}}$
@@ -79,9 +75,7 @@ $$
 
 - With this, we can define an image formation $\mathcal{S}(\mathcal{P})$
 
-$$
-\mathcal{P} = (\mathbf{\alpha}, \mathbf{\beta}, \mathbf{\delta}, \mathbf{\gamma}, \mathcal{R}, \mathbf{t})
-$$
+$$\mathcal{P} = (\mathbf{\alpha}, \mathbf{\beta}, \mathbf{\delta}, \mathbf{\gamma}, \mathcal{R}, \mathbf{t})$$
  
 - by defining following camera projection model
 
@@ -90,9 +84,7 @@ $$
 - World coordinate frame is equivalent with RGB-D sensor and assume the camera to be calibrated
 - The model-to-world transformation (model to the RGB-D camera space transformation) is give by
 
-$$
-\Phi(v) = \mathbf{R}v+\mathbf{t}
-$$
+$$\Phi(v) = \mathbf{R}v+\mathbf{t}$$
 
 - where $\mathbf{R}$ is parameterized using Euler angles and together with $\mathbf{t}$
 
@@ -105,9 +97,9 @@ $$
 - Use Spehrical Harmonics (SH) basis
   - a low dimensional representation of the incident illumination
   - The irradiance in a vertex with normal n and scalar albedo c is represented using b=3 bands of SHs for the incident illumination
-$$
-\mathcal{L}_(\gamma, n, c) = c \dot \sum_{k=1}^{b^2} \gamma_k y_k(n)
-$$
+ 
+$$\mathcal{L}_(\gamma, n, c) = c \dot \sum_{k=1}^{b^2} \gamma_k y_k(n)$$
+
 - $y_k(n)$: is the k-th SH basis function
 - $\gamma = (\gamma_1, .., \gamma_{b^2})$ (the SH coefficients)
 - Since we assume that it is the distant light source, the irradiance is independent of the vertex position and only depends on the vertex normal and the albedo
@@ -122,9 +114,8 @@ $$
 # Energy Formulation
 - Linear least squares energy
   - unconstrained energy minimization problem in the unknowns $\mathcal{P}$
-$$
- \mathbf{E}(\mathcal{P}) = \mathbf{E}_{\mathbf{emb}}(\mathcal{P}) + \omega_{col}\mathbf{E}_{\mathbf{col}}(\mathcal{P}) + \omega_{lan}\mathbf{E}_{\mathbf{lan}}(\mathcal{P}) + \omega_{reg}\mathbf{E}_{\mathbf{reg}}(\mathcal{P})
-$$
+
+$$\mathbf{E}(\mathcal{P}) = \mathbf{E}_{\mathbf{emb}}(\mathcal{P}) + \omega_{col}\mathbf{E}_{\mathbf{col}}(\mathcal{P}) + \omega_{lan}\mathbf{E}_{\mathbf{lan}}(\mathcal{P}) + \omega_{reg}\mathbf{E}_{\mathbf{reg}}(\mathcal{P})$$
 
 - Geometric error (in 3D coordinate): $\mathbf{E}_{\mathbf{emb}}(\mathcal{P})$
 - Photometric error (on 2d image plane): $\mathbf{E}_{\mathbf{col}}(\mathcal{P})$
@@ -134,51 +125,31 @@ $$
 ## Geometric Error (Geometry Consistency Metric)
 - **Goal**: measure errors between the reconstructed geometry of virtual face and RGB-D input
 
-$$
-\mathbf{E}_{\mathbf{emb}}(\mathcal{P}) = \omega_{point}\mathbf{E}_{\mathbf{point}}(\mathcal{P}) + \omega_{plane}\mathbf{E}_{\mathbf{plane}}(\mathcal{P})
-$$
+$$\mathbf{E}_{\mathbf{emb}}(\mathcal{P}) = \omega_{point}\mathbf{E}_{\mathbf{point}}(\mathcal{P}) + \omega_{plane}\mathbf{E}_{\mathbf{plane}}(\mathcal{P})$$
 
 - $\omega_{plane} > \omega_{point}$ (e.g, 1.0 > 0.1), give weight to the point-to-plan error to minimize parameters strictly for the point-to-plane term
 
 ### Point to point error (Sum of squared 2d residuals)
 
-$$
-\mathbf{E}_{\mathbf{point}}(\mathcal{P}) = \sum_{\mathbf{p}\in\mathcal{V}} ||d_{point}(\mathbf{p})||_2^2
+$$\mathbf{E}_{\mathbf{point}}(\mathcal{P}) = \sum_{\mathbf{p}\in\mathcal{V}} ||d_{point}(\mathbf{p})||_2^2$$
 
-$$
-$$
-d_{point}(\mathbf{p}) = X_\mathcal{s}(\mathbf{p}) - X_\mathcal{\mathcal{I}}(\mathbf{p})
+$$d_{point}(\mathbf{p}) = X_\mathcal{s}(\mathbf{p}) - X_\mathcal{\mathcal{I}}(\mathbf{p})$$
 
-$$
-
-X_\mathcal{s}(\mathbf{p}) : \text{observed 3D point vertex position}
-
-$$
-X_\mathcal{I}(\mathbf{p}) : \text{observed 3D point vertex position}
-
-$$
+$$X_\mathcal{s}(\mathbf{p}) : \text{observed 3D point vertex position}$$
+$$X_\mathcal{I}(\mathbf{p}) : \text{observed 3D point vertex position}$$
 
 ### Point to plane error
 
-$$
-E_{plane}(\mathcal{P}) = \sum_{\mathbf{p}\in\mathcal{V}} [d^2_{plane}(N_s(\mathbf{p}), \mathbf{p})+d^2_{plane}(N_{\mathcal{I}}(\mathbf{p}), \mathbf{p})]
-$$
-$$
-N_s(\mathbf{p}):\text{normal vector of p}
-$$
-$$
-d_{plane}(N_s(\mathbf{p}), \mathbf{p}) = N_s(\mathbf{p})^Td_{point}(\mathbf{p})
-$$
+$$E_{plane}(\mathcal{P}) = \sum_{\mathbf{p}\in\mathcal{V}} [d^2_{plane}(N_s(\mathbf{p}), \mathbf{p})+d^2_{plane}(N_{\mathcal{I}}(\mathbf{p}), \mathbf{p})]$$
+
+$$N_s(\mathbf{p}):\text{normal vector of p}$$
+
+$$d_{plane}(N_s(\mathbf{p}), \mathbf{p}) = N_s(\mathbf{p})^Td_{point}(\mathbf{p})$$
 
 ## Image space Error (Color Consistency Metric)
-$$
-\mathbf{E}_{col}(\mathcal{P})=\sum_{\mathcal{p} \in \mathcal{V}} ||C_s(\mathbf{p}) - C_\mathcal{I}(\mathbf{p})||_2^2
-
-$$
-C_s(\mathbf{p}): \text{reconstructed image}
-$$
-C_\mathcal{I}(\mathbf{p}): \text{ground truth}
-$$
+$$\mathbf{E}_{col}(\mathcal{P})=\sum_{\mathcal{p} \in \mathcal{V}} ||C_s(\mathbf{p}) - C_\mathcal{I}(\mathbf{p})||_2^2$$
+$$C_s(\mathbf{p}): \text{reconstructed image}$$
+$$C_\mathcal{I}(\mathbf{p}): \text{ground truth}$$
 
 ## Landmark space Error (Feature Similarity Metric)
 - Each detected feature $\mathcal{f}_j = (u_j, v_j)$ is a 2D location in the image domain that corresponds to a consistent 3D vertex v_j in our geometric face model (only 38 landmarksManual process)
@@ -187,17 +158,14 @@ $$
       
 - Where $\mathcal{F}$ is the set of detected features in each RGB input frame, we can define a metric that enforces facial features in the synthesized views to be close to the detected features
 
-$$
-E_{lan}(\mathcal{P}) = \sum_{\mathbf{f}_j \in \mathcal{F}} \omega_{conf,j} ||\mathcal{f_j} - \Pi(\Phi(v_j))||_2^2
-$$
+$$E_{lan}(\mathcal{P}) = \sum_{\mathbf{f}_j \in \mathcal{F}} \omega_{conf,j} ||\mathcal{f_j} - \Pi(\Phi(v_j))||_2^2$$
 
 ## Regularization Constraints
 - Under the assumption of Gaussian distributed parameters, the interval [-3$\sigma_{params, i}$,3$\sigma_{params, i}$]
 - params: model parameters
   - $\alpha, \beta, \text{and},   \delta$
 
-$$
-E_{reg}(\mathcal{P}) = \sum_{i=1}^{160}[(\frac{\mathbf{\alpha}_i}{\sigma_{id, i}})^2+(\frac{\mathbf{\beta}_i}{\sigma_{alb, i}})^2] + \sum_{i=1}^{76}(\frac{\mathbf{\delta}_i}{\sigma_{exp, i}})^2$$
+$$E_{reg}(\mathcal{P}) = \sum_{i=1}^{160}[(\frac{\mathbf{\alpha}_i}{\sigma_{id, i}})^2+(\frac{\mathbf{\beta}_i}{\sigma_{alb, i}})^2] + \sum_{i=1}^{76}(\frac{\mathbf{\delta}_i}{\sigma_{exp, i}})^2$$
 
 - standard deviation
   - $\sigma_{exp, i}$ was fixed to one
@@ -239,9 +207,7 @@ E_{reg}(\mathcal{P}) = \sum_{i=1}^{160}[(\frac{\mathbf{\alpha}_i}{\sigma_{id, i}
 ## Expression Transfer
 - Just substitut $\delta_{s}$ by the optimized $\delta_{s}$ for the source target.
 
-$$
-\mathcal{M}_{geo}(\alpha_t, \delta_s) = \mathbf{\alpha}_{id} + E_{id}\mathbf{\alpha_{t}} + E_{exp}\mathbf{\delta_{s}}
-$$
+$$\mathcal{M}_{geo}(\alpha_t, \delta_s) = \mathbf{\alpha}_{id} + E_{id}\mathbf{\alpha_{t}} + E_{exp}\mathbf{\delta_{s}}$$
 
         # idea (optional)
           - Relatively easily we can perform some experiment with another ideas for facial expression transfer.
