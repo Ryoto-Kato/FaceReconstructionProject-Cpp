@@ -34,7 +34,7 @@ $$\mathcal{P} = (\mathbf{\alpha}, \mathbf{\beta}, \mathbf{\delta}, \mathbf{\gamm
 
 - for ith vertex 
 
-$$\mathcal{M}_{geo}(\mathbf{\alpha},{\delta}) \in \mathbf{\real}^3 = \mathbf{\alpha_{id}} + E_{id} \mathbf{\alpha} + E_{exp} \mathbf{\delta} $$
+$$\mathcal{M}_{geo}(\mathbf{\alpha},{\delta}) \in \mathbf{\real}^3 = \mathbf{\alpha_{id}} + E_{id} \mathbf{\alpha} + E_{exp} \mathbf{\delta}$$
 
 $$\mathcal{M}_{alb}(\beta) \in \mathbf{\real}^3 = \mathbf{\alpha}_{alb} + E_{alb}\mathbf{\beta}$$
 
@@ -131,7 +131,9 @@ $$\mathbf{E}_{\mathbf{emb}}(\mathcal{P}) = \omega_{point}\mathbf{E}_{\mathbf{poi
 
 ### Point to point error (Sum of squared 2d residuals)
 
-$${\mathbf{E}_{\mathbf{point}}(\mathcal{P}) = \sum_{\mathbf{p}\in\mathcal{V}} ||d_{point}(\mathbf{p})||_2^2}$$
+
+
+$$\mathbf{E}_{\mathbf{point}}(\mathcal{P}) = \sum_{\mathbf{p}\in\mathcal{V}}||d_{point}(\mathbf{p})||_2^2$$
 
 $${d_{point}(\mathbf{p}) = X_\mathcal{s}(\mathbf{p}) - X_\mathcal{\mathcal{I}}(\mathbf{p})}$$
 
@@ -140,7 +142,7 @@ $${X_\mathcal{I}(\mathbf{p}) : \text{observed 3D point vertex position}}$$
 
 ### Point to plane error
 
-$$E_{plane}(\mathcal{P}) = \sum_{\mathbf{p}\in\mathcal{V}} [d^2_{plane}(N_s(\mathbf{p}), \mathbf{p})+d^2_{plane}(N_{\mathcal{I}}(\mathbf{p}), \mathbf{p})]$$
+$$E_{plane}(\mathcal{P})=\sum_{\mathbf{p}\in\mathcal{V}}[d^2_{plane}(N_s(\mathbf{p}),\mathbf{p})+d^2_{plane}(N_{\mathcal{I}}(\mathbf{p}),\mathbf{p})]$$
 
 $$N_s(\mathbf{p}):\text{normal vector of p}$$
 
