@@ -131,12 +131,12 @@ $$\mathbf{E}_{\mathbf{emb}}(\mathcal{P}) = \omega_{point}\mathbf{E}_{\mathbf{poi
 
 ### Point to point error (Sum of squared 2d residuals)
 
-$$\mathbf{E}_{\mathbf{point}}(\mathcal{P}) = \sum_{\mathbf{p}\in\mathcal{V}} ||d_{point}(\mathbf{p})||_2^2$$
+$${\mathbf{E}_{\mathbf{point}}(\mathcal{P}) = \sum_{\mathbf{p}\in\mathcal{V}} ||d_{point}(\mathbf{p})||_2^2}$$
 
-$$d_{point}(\mathbf{p}) = X_\mathcal{s}(\mathbf{p}) - X_\mathcal{\mathcal{I}}(\mathbf{p})$$
+$${d_{point}(\mathbf{p}) = X_\mathcal{s}(\mathbf{p}) - X_\mathcal{\mathcal{I}}(\mathbf{p})}$$
 
-$$X_\mathcal{s}(\mathbf{p}) : \text{observed 3D point vertex position}$$
-$$X_\mathcal{I}(\mathbf{p}) : \text{observed 3D point vertex position}$$
+$${X_\mathcal{s}(\mathbf{p}) : \text{observed 3D point vertex position}}$$
+$${X_\mathcal{I}(\mathbf{p}) : \text{observed 3D point vertex position}}$$
 
 ### Point to plane error
 
