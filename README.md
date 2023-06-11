@@ -44,6 +44,24 @@ Faithful 3D face reconstruction and the synthesis of reliable facial expressions
   - [ ] Prepared for presentation
   - [ ] weekly report
 
+# Requirement
+- Libraries for facial landmark detection
+  - CSIRO Face Analysis SDK 
+    - Too old, 10 years ago
+  - [**Dlib facial landmark**](http://dlib.net/compile.html)
+    - Can be integrated in C++
+    - Pre-trained facial landmark detection model
+    - There is an sample program [here](http://dlib.net/face_landmark_detection_ex.cpp.html)
+    - DEMO: Real-time facial landmark detection demo
+      - check out /realtime_facial_landmark_detection_demo
+  - Openpose
+    - Not yet
+  - MediaPipe
+    - Python
+    - We need to create an data streamer from python to our C++ (server.client)
+  - OpenCV with a pre-trained model
+    - Not yet
+
 # Proposals (Deadline: June 9)
 - Overleaf (CVPR)
 - Time line
