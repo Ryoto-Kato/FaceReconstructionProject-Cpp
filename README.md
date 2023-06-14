@@ -45,6 +45,45 @@ Faithful 3D face reconstruction and the synthesis of reliable facial expressions
   - [ ] weekly report
 
 # Requirement
+- Datasets
+  - RGB-D scans of humans faces
+    - FaceWarehouse (Kinect RGB-D camera base)
+      - 150 individuals
+      - 7-80 from various ethnic backgrounds
+      - 19 expressions + 1 neutral
+      - Contents
+        - raw data from the Kinect RGBD camera
+        - reconstructed face mesh
+        - labelled 2D landmarks for the first frame of raw data
+        - Blendshapes
+        - **NO Dataloader**
+      - How to get data
+        - (1) your name, title, affiliation (**if you are a student, please ask your advisor to contact us**)
+        (2) your intended use of the data
+        (3) a statement saying that you accept the following terms of licensing:
+        The rights to copy, distribute, and use the data (including the RGBD images and 3D models) you are being given access to are under the control of Kun Zhou, head of the Graphics and Parallel Systems Lab, Zhejiang University. You are hereby given permission to copy this data in electronic or hardcopy form for your own scientific use and to distribute it for scientific use to colleagues within your research group. Inclusion of rendered images or video made from this data in a scholarly publication (printed or electronic) is also permitted. In this case, credit must be given to the publication: FaceWarehouse: a 3D Facial Expression Database for Visual Computing. However, the data may not be included in the electronic version of a publication, nor placed on the Internet. These restrictions apply to any representations (other than images or video) derived from the data, including but not limited to simplifications, remeshing, and the fitting of smooth surfaces. The making of physical replicas this data is prohibited, and the data may not be distributed to students in connection with a class. For any other use, including distribution outside your research group, written permission is required from Kun Zhou. Any commercial use of the data is prohibited. Commercial use includes but is not limited to sale of the data, derivatives, replicas, images, or video, inclusion in a product for sale, or inclusion in advertisements (printed or electronic), on commercially-oriented web sites, or in trade shows.
+    - [IAS-LAB RGB-D Face Dataset](http://robotics.dei.unipd.it/reid/index.php/downloads)
+        - Kinect RGB-D V2
+        - Contents
+          - Data Loader
+          - 26 people in train and 19 people in test set
+          - **No facial expression??**
+          G. Pitteri, M. Munaro and E. Menegatti.
+          "Depth-based frontal view generation for pose invariant face recognition with consumer RGB-D sensors".
+          In Proceedings of the 14th International Conference on Intelligent Autonomous Systems (IAS-14), Shanghai, 2016.
+
+
+  - Face model
+    - Basel Face model 2017
+      - provided
+        - The average shape
+        - The principal shape components
+        - The shape variance
+        - The mesh topology
+        - The average texture
+        - The principal texture components
+        - The texture variance
+      - 
 - Libraries for facial landmark detection
   - CSIRO Face Analysis SDK 
     - Too old, 10 years ago
