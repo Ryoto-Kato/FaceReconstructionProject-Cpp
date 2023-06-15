@@ -225,8 +225,6 @@ int main() {
 	SimpleMesh resultingMesh = sourceMesh;
 	resultingMesh.writeMesh(std::string("result.off"));
 	std::cout << "Resulting mesh written." << std::endl;
-	
-	std::cout << "Lara <3" << std::endl;
 
     return 0;
 }
