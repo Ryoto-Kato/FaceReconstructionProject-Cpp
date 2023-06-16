@@ -11,21 +11,21 @@
         subgraph FR["Face Reconstruction"]
             subgraph Fit["Face Model Parameter Estimation"]
                 subgraph Loss["Loss Function"]
-                    Point["Point to Point"]
-                    Plane["Point to Plane"]
-                    Color
-                    Sparse
-                    Reg["Regularization"]
+                    Point("Point to Point")
+                    Plane("Point to Plane")
+                    Color("Color")
+                    Sparse("Sparse")
+                    Reg("Regularization")
                 end
                 Depth-->Loss
                 RGB-->Color
-                Loss --> ICP
-                ICP --"n times"--> Loss
+                Loss --> AbS("Analysis by Synthesis")
+                AbS --"n times"--> Loss
             end
             RGB
             --> LD("Landmark Detector")
             --> BP("Back-projection")
-            --> Procrustes
+            --> Procrustes("Procrustes")
             Depth --> BP
             BP --> Sparse
             subgraph PE["Pose Estimation"]
@@ -37,7 +37,7 @@
             subgraph BFM["Basel Face Model"]
                 PC("Principal Components")
                 --> Loss
-                Sigma("Standard Deviation of \n Principal Components")
+                Sigma("Standard Deviation \n of Parameters")
                 --> Reg
                 AF("Average Face Mesh")
                 --> LE("Landmark Extractor")
@@ -45,7 +45,7 @@
                 AF --> Loss
             end
         end
-        ICP --> MeshGen("Mesh Generation")
+        AbS --> MeshGen("Mesh Generation")
         PC --> MeshGen
         AF --> MeshGen
         MeshGen --> GEO
@@ -58,7 +58,7 @@
             RGB --> Overlay
         end
 ```
-*If not available this can be substituted by mash cleated form the depth point cloud
+*If not available this can be substituted by a mesh created form the depth point cloud
 
 ## Extension for Expression Transfer
 
