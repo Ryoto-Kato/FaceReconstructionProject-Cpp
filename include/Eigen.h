@@ -33,7 +33,7 @@
 #include <Eigen/Sparse>
 #include <Eigen/SparseCholesky>
 
-typedef Eigen::Matrix<unsigned char, 4, 1> Vector4uc;
+
 typedef Eigen::Matrix<unsigned char, 3, 1> Vector3uc;
 
 
