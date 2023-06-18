@@ -4,3 +4,4 @@ build/
 /personal
 *.dat
 .vscode/
+*.h5
