@@ -3,3 +3,4 @@
 build/
 /personal
 *.dat
+.vscode/
