@@ -75,4 +75,3 @@ Faithful 3D face reconstruction and the synthesis of reliable facial expressions
 - Deadline
   - Friday July 28 23:59
 
-hallo
