@@ -269,7 +269,6 @@ public:
 		
 		return pointer;
 	}
-
 	/*
 	 * @Function rk_Meshwriter
 	 *		mesh writer
@@ -286,7 +285,9 @@ public:
 
 	void rk_Meshwriter(std::string f_name_ply, bool withExp);
 
-
+	void GetShapeComponents(VectorXd & vec_Mu_shape, VectorXd & vec_Ev_Shape, MatrixXd & mat_Pc_Shape);
+	void GetTexComponents(VectorXd & vec_Mu_Tex, VectorXd & vec_Ev_Tex, MatrixXd & mat_Pc_Tex);
+	void GetExpComponents(VectorXd & vec_Mu_Exp, VectorXd & vec_Ev_Exp, MatrixXd & mat_Pc_Exp);
 /*************************************************************************************************************/
 /***************************************** Set & Get Functions ***********************************************/
 /*************************************************************************************************************/
@@ -371,7 +372,15 @@ public:
 	VectorXd getCurrentBlendshapeTransformed() const { return bfm_utils::TransPoints(m_matR, m_vecT, m_vecCurrentBlendshape); }
 	inline const Matrix<int, Dynamic, 1> &getTriangleList() const { return m_vecTriangleList; }
 	inline const std::vector<std::pair<int, int>>& getMapLandmarkIndices() const { return m_mapLandmarkIndices; }
-
+	inline const VectorXd &get_ShapeMu() const {return m_vecShapeMu;}
+	inline const VectorXd &get_ShapeEv() const {return m_vecShapeEv;}
+	inline const MatrixXd &get_ShapePc() const {return m_matShapePc;}
+	inline const VectorXd &get_TexMu() const {return m_vecTexMu;}
+	inline const VectorXd &get_TexEv() const {return m_vecTexEv;}
+	inline const MatrixXd &get_TexPc() const {return m_matTexPc;}
+	inline const VectorXd &get_ExprMu() const {return m_vecExprMu;}
+	inline const VectorXd &get_ExprEv() const {return m_vecExprEv;}
+	inline const MatrixXd &get_ExprPc() const {return m_matExprPc;}
 /*************************************************************************************************************/
 /************************************** Print Function (for Debug) *******************************************/
 /*************************************************************************************************************/

@@ -80,6 +80,45 @@ int main(int argc, char *argv[])
     // Set the file name as you want.
     // you will find the .ply in build
     pBfmManager->GetBFM("test1.ply", _coef_shape, _coef_tex, _coef_exp, _average, _withExp);
+    
+    //How to get principal components, variances, and mu for shape, identity, and texture
+    VectorXd vec_Mu_Shape;
+    VectorXd vec_Ev_Shape;
+    MatrixXd mat_Pc_Shape;
+    VectorXd vec_Mu_Tex;
+    VectorXd vec_Ev_Tex;
+    MatrixXd mat_Pc_Tex;
+    VectorXd vec_Mu_Exp;
+    VectorXd vec_Ev_Exp;
+    MatrixXd mat_Pc_Exp;
+
+    pBfmManager->GetShapeComponents(vec_Mu_Shape, vec_Ev_Shape, mat_Pc_Shape);
+    pBfmManager->GetTexComponents(vec_Mu_Tex, vec_Ev_Tex, mat_Pc_Tex);
+    pBfmManager->GetExpComponents(vec_Mu_Exp, vec_Ev_Exp, mat_Pc_Exp);
+
+    // vec_Mu_Shape = pBfmManager->get_ShapeMu();
+
+    // You can test if you successfully obtain the principal components, variances, and mu
+    // std::cout<<"vec_Mu_Shape"<<std::endl;
+    // std::cout<<vec_Mu_Shape<<std::endl;
+    // std::cout<<"vec_EV_Shape"<<std::endl;
+    // std::cout<<vec_Ev_Shape<<std::endl;
+    // std::cout<<"vec_Pc_Shape"<<std::endl;
+    // // std::cout<<mat_Pc_Shape<<std::endl;
+
+    // std::cout<<"vec_Mu_Tex"<<std::endl;
+    // std::cout<<vec_Mu_Tex<<std::endl;
+    // std::cout<<"vec_EV_Tex"<<std::endl;
+    // std::cout<<vec_Ev_Tex<<std::endl;
+    // std::cout<<"vec_Pc_Tex"<<std::endl;
+    // // std::cout<<mat_Pc_Tex<<std::endl;
+
+    // std::cout<<"vec_Mu_Exp"<<std::endl;
+    // std::cout<<vec_Mu_Exp<<std::endl;
+    // std::cout<<"vec_EV_Exp"<<std::endl;
+    // std::cout<<vec_Ev_Exp<<std::endl;
+    // std::cout<<"vec_Pc_Exp"<<std::endl;
+    // // std::cout<<mat_Pc_Exp<<std::endl;
 
 
 	google::ShutdownGoogleLogging();

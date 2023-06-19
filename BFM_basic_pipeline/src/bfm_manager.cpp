@@ -858,3 +858,22 @@ void BfmManager::rk_Meshwriter(std::string f_name_ply, bool withExp){
 	out.close();
 }
 
+void BfmManager::GetShapeComponents(VectorXd & vec_Mu_Shape, VectorXd & vec_Ev_Shape, MatrixXd & mat_Pc_Shape){
+	vec_Mu_Shape = BfmManager::get_ShapeMu();
+	vec_Ev_Shape = BfmManager::get_ShapeEv();
+	mat_Pc_Shape = BfmManager::get_ShapePc();
+}
+
+void BfmManager::GetTexComponents(VectorXd & vec_Mu_Tex, VectorXd & vec_Ev_Tex, MatrixXd & mat_Pc_Tex){
+	vec_Mu_Tex = BfmManager::get_TexMu();
+	vec_Ev_Tex = BfmManager::get_TexEv();
+	mat_Pc_Tex = BfmManager::get_TexPc();
+}
+
+void BfmManager::GetExpComponents(VectorXd & vec_Mu_Exp, VectorXd & vec_Ev_Exp, MatrixXd & mat_Pc_Exp){
+	vec_Mu_Exp = BfmManager::get_ExprMu();
+	vec_Ev_Exp = BfmManager::get_ExprEv();
+	mat_Pc_Exp = BfmManager::get_ExprPc();
+}
+
+
