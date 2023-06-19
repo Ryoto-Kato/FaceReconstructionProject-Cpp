@@ -95,9 +95,7 @@ int main(int argc, char *argv[])
     pBfmManager->GetShapeComponents(vec_Mu_Shape, vec_Ev_Shape, mat_Pc_Shape);
     pBfmManager->GetTexComponents(vec_Mu_Tex, vec_Ev_Tex, mat_Pc_Tex);
     pBfmManager->GetExpComponents(vec_Mu_Exp, vec_Ev_Exp, mat_Pc_Exp);
-
-    // vec_Mu_Shape = pBfmManager->get_ShapeMu();
-
+    
     // You can test if you successfully obtain the principal components, variances, and mu
     // std::cout<<"vec_Mu_Shape"<<std::endl;
     // std::cout<<vec_Mu_Shape<<std::endl;
