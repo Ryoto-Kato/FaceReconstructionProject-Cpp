@@ -1,3 +1,7 @@
 *.pdf
 *.zip
+build/
 /personal
+*.dat
+.vscode/
+*.h5

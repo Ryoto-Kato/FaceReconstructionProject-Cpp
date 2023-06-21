@@ -186,11 +186,11 @@ $$E_{reg}(\mathcal{P}) = \sum_{i=1}^{160}[(\frac{\mathbf{\alpha}_i}{\sigma_{id, 
         - Skin albedo
         - Incident illumination
         
-!! facial expression is not necessary but we can easily create the personalized expression basis from this calibration
+        !! facial expression is not necessary but we can easily create the personalized expression basis from this calibration
 
-- Almost all parameters are estimate by minimizing the energy function on given RGB-D frame to determine the parameter $\mathbf{P}$ that faithfully reproduce the observed face in each RGB-D input frame
--  
-1. Run time
+     - Almost all parameters are estimate by minimizing the energy function on given RGB-D frame to determine the parameter $\mathbf{P}$ that faithfully reproduce the observed face in each RGB-D input frame
+
+2. Run time
   - Fix Albedo and Identity (modify the above parameters from the good initialization)
   - Estimate head, pose, facial expression and incident 
   - Re-render the face back into the underlying input video stream
