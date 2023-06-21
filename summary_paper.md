@@ -34,7 +34,7 @@ $$\mathcal{P} = (\mathbf{\alpha}, \mathbf{\beta}, \mathbf{\delta}, \mathbf{\gamm
 
 - for ith vertex 
 
-$$\mathcal{M}_{geo}(\mathbf{\alpha},{\delta}) \in \mathbf{\real}^3 = \mathbf{\alpha_{id}} + E_{id} \mathbf{\alpha} + E_{exp} \mathbf{\delta}$$
+$$\mathcal{M}_{geo}(\mathbf{\alpha},{\delta})\in\mathbf{\real}^3=\mathbf{\alpha_{id}}+E_{id}\mathbf{\alpha}+E_{exp}\mathbf{\delta}$$
 
 $$\mathcal{M}_{alb}(\beta) \in \mathbf{\real}^3 = \mathbf{\alpha}_{alb} + E_{alb}\mathbf{\beta}$$
 
@@ -149,7 +149,7 @@ $$N_s(\mathbf{p}):\text{normal vector of p}$$
 $$d_{plane}(N_s(\mathbf{p}), \mathbf{p}) = N_s(\mathbf{p})^Td_{point}(\mathbf{p})$$
 
 ## Image space Error (Color Consistency Metric)
-$$\mathbf{E}_{col}(\mathcal{P})=\sum_{\mathcal{p} \in \mathcal{V}} ||C_s(\mathbf{p}) - C_\mathcal{I}(\mathbf{p})||_2^2$$
+$$\mathbf{E}_{col}(\mathcal{P})=\sum_{\mathcal{p} \in \mathcal{V}} ||C_s(\mathbf{p})-C_\mathcal{I}(\mathbf{p})||_2^2$$
 $$C_s(\mathbf{p}): \text{reconstructed image}$$
 $$C_\mathcal{I}(\mathbf{p}): \text{ground truth}$$
 
