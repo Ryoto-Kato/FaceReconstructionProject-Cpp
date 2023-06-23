@@ -139,26 +139,28 @@ int main()
     writeLandmarkPly("dlib_landmarks.ply", camera_landmarks);
     bfm_manager->writeLandmarkPly("bfm_landmarks_before_procrustes.ply");
 
+    // Perform procrustes
     ProcrustesAligner procrustes;
     Matrix4f pose_estimate = procrustes.estimatePose(bfm_landmarks, camera_landmarks);
 
     std::cout << "Pose Estimation: " << std::endl << pose_estimate << std::endl;
 
+    // Update BFM with new extrinsic parameters
+    bfm_manager->setMatR(pose_estimate.block<3,3>(0,0).cast<double>());
+    bfm_manager->setVecT(pose_estimate.block<3,1>(0,3).cast<double>());
+    bfm_manager->genExtParams();
+    bfm_manager->genFace();
+    bfm_manager->genLandmarkBlendshape();
+
+    // Get Transformed Landmarks
     std::vector<Vector3f> bfm_landmark_transformed;
-    for (Vector3f landmark : bfm_landmarks)
-
-
-
-    // bfm_manager->setMatR(pose_estimate.block<3,3>(0,0).cast<double>());
-    // bfm_manager->setVecT(pose_estimate.block<1,3>(0,3).cast<double>());
-
-    // bfm_manager->genExtParams();
-    // bfm_manager->genFace();
-    // bfm_manager->genLandmarkBlendshape();
-
-    // //write ply
-    // bfm_manager->writeLandmarkPly("bfm_landmarks_after_procrustes.ply");
-
+    for (size_t i = 0; i < bfm_manager->getMapLandmarkIndices().size(); i++)
+    {
+        bfm_landmark_transformed.push_back(Vector3f(bfm_manager->getLandmarkCurrentBlendshapeTransformed()(i * 3),
+                                                    bfm_manager->getLandmarkCurrentBlendshapeTransformed()(i * 3 + 1),
+                                                    bfm_manager->getLandmarkCurrentBlendshapeTransformed()(i * 3 + 2)));
+    }
+    writeLandmarkPly("bfm_landmarks_after_procrustes.ply", bfm_landmark_transformed);
 
     // Display landmarks on image
     if (DEBUG_OUT_ENABLED)
