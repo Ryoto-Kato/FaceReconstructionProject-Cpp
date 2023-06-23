@@ -64,7 +64,7 @@ find_package(Boost REQUIRED system filesystem program_options)
 include_directories(${Boost_INCLUDE_DIRS})
 
 if(UNIX)
-    set(LIBS 
+    set(LIBS
         /usr/lib/x86_64-linux-gnu/libboost_filesystem.so.1.65.1
         /usr/lib/x86_64-linux-gnu/libboost_system.so.1.65.1
     )
@@ -81,9 +81,8 @@ message(STATUS "path to opencv lib information: ${OpenCV_LIBS}")
 
 
 # Bfm Manager
-target_include_directories(bfm_manager PUBLIC ./include ${OpenCV_INCLUDE_DIRS})
+target_include_directories(bfm_manager PUBLIC ./include ${OpenCV_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS})
 target_link_libraries(bfm_manager m ${OpenCV_LIBS} ${HDF5_LIBRARIES} ${HDF5_CXX_LIBRARIES} ${Boost_LIBRARIES} glog boost_filesystem)
-
 
 ###############################################################################################
 ######################################## Options ##############################################
