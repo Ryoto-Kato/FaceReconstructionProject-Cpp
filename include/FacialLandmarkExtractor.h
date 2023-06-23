@@ -14,7 +14,7 @@
 
 
 // You can get this file from http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2
-const std::string MODELL_PATH = "../../models/dlib/shape_predictor_68_face_landmarks.dat";
+const std::string MODELL_PATH = "../models/dlib/shape_predictor_68_face_landmarks.dat";
 
 class FacialLandmarkExtractor
 {

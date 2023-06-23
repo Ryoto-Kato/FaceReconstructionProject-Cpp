@@ -133,11 +133,11 @@ BfmManager::BfmManager(
 
 	m_bUseLandmark = strLandmarkIdxPath == "" ? false : true;
 
-	if(m_bUseLandmark){
-		std::cout<<"Use Landmark"<<std::endl;
-	}else{
-		std::cout<<"Does not use Landmark"<<std::endl;
-	}
+	// if(m_bUseLandmark){
+	// 	std::cout<<"Use Landmark"<<std::endl;
+	// }else{
+	// 	std::cout<<"Does not use Landmark"<<std::endl;
+	// }
 
 	if(m_bUseLandmark)
 	{
@@ -156,10 +156,10 @@ BfmManager::BfmManager(
 		inFile.close();
 	}
 	
-	for(const auto& [dlibIdx, bfmIdx] : m_mapLandmarkIndices){
+	// for(const auto& [dlibIdx, bfmIdx] : m_mapLandmarkIndices){
 		
-		std::cout<<dlibIdx<<" "<<bfmIdx<<std::endl;	
-	}
+	// 	std::cout<<dlibIdx<<" "<<bfmIdx<<std::endl;	
+	// }
 
 	this->alloc();
 	this->load();	
@@ -748,29 +748,29 @@ void BfmManager::clrExtParams()
 }
 
 void BfmManager::GetBFM(std::string f_name_ply, std::vector<double> & Coef_shape, std::vector<double> & Coef_Tex, std::vector<double> & Coef_exp,  bool average, bool withExp){
-
+	
 	if(average){
 		double dScale[3]= {sqrt(m_vecShapeEv.minCoeff()), sqrt(m_vecTexEv.minCoeff()), sqrt(m_vecExprEv.minCoeff())};
 		m_aShapeCoef = bfm_utils::randn(m_nIdPcs, 0.0);
-		std::cout<<"m_aShapeCoef"<<std::endl;
-		for(int i = 0; i<199; i++){
-			std::cout<<m_aShapeCoef[i]<<", ";
-		}
-		std::cout<<std::endl;
+		// std::cout<<"m_aShapeCoef"<<std::endl;
+		// for(int i = 0; i<199; i++){
+		// 	std::cout<<m_aShapeCoef[i]<<", ";
+		// }
+		// std::cout<<std::endl;
 		m_aTexCoef   = bfm_utils::randn(m_nIdPcs, 0.0);
-		std::cout<<"m_aTexCoef"<<std::endl;
-		for(int i = 0; i<199; i++){
-			std::cout<<m_aTexCoef[i]<<", ";
-		}
-		std::cout<<std::endl;
+		// std::cout<<"m_aTexCoef"<<std::endl;
+		// for(int i = 0; i<199; i++){
+		// 	std::cout<<m_aTexCoef[i]<<", ";
+		// }
+		// std::cout<<std::endl;
 		if(m_strVersion != "2009"){
 			m_aExprCoef  = bfm_utils::randn(m_nExprPcs, 0.0);
 			
-			std::cout<<"m_aExprCoef"<<std::endl;
-			for(int i = 0; i<199; i++){
-				std::cout<<m_aExprCoef[i]<<", ";
-			}
-			std::cout<<std::endl;
+			// std::cout<<"m_aExprCoef"<<std::endl;
+			// for(int i = 0; i<100; i++){
+			// 	std::cout<<m_aExprCoef[i]<<", ";
+			// }
+			// std::cout<<std::endl;
 		}
 		this->genFace();
 	}else{
@@ -805,6 +805,8 @@ void BfmManager::rk_Meshwriter(std::string f_name_ply, bool withExp){
 		return;
 	}
 
+    std::cout<<"Writing face mesh ply ("<<f_name_ply<<")"<<"....";
+
 	out << "ply\n";
 	out << "format ascii 1.0\n";
 	out << "comment Made from the 3D Morphable Face Model of the Univeristy of Basel, Switzerland.\n";
@@ -818,8 +820,6 @@ void BfmManager::rk_Meshwriter(std::string f_name_ply, bool withExp){
 	out << "element face " << m_nFaces << "\n";
 	out << "property list uchar int vertex_indices\n";
 	out << "end_header\n";
-
-	std::cout<<"Writer_test_output"<<std::endl;
 
 	int cnt = 0;
 	for (int iVertice = 0; iVertice < m_nVertices; iVertice++) 
@@ -856,6 +856,8 @@ void BfmManager::rk_Meshwriter(std::string f_name_ply, bool withExp){
 	}
 
 	out.close();
+    std::cout<<"Finish face mesh ply ("<<f_name_ply<<")"<<std::endl;
+
 }
 
 void BfmManager::GetShapeComponents(VectorXd & vec_Mu_Shape, VectorXd & vec_Ev_Shape, MatrixXd & mat_Pc_Shape){

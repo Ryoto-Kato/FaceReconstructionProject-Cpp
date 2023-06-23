@@ -33,8 +33,8 @@ int main(int argc, char *argv[])
 
     std::string sBfmH5Path, sLandmarkIdxPath;
 	double dFx = 0.0, dFy = 0.0, dCx = 0.0, dCy = 0.0;
-    sBfmH5Path = "/home/ryotok/Documents/TUM/SS23/FP_3DSM/BFM_basic_pipeline/Data/model2017-1_bfm_nomouth.h5";
-    sLandmarkIdxPath = "/home/ryotok/Documents/TUM/SS23/FP_3DSM/BFM_basic_pipeline/Data/map_dlib-bfm_rk.anl";
+    sBfmH5Path = "../data/model2017-1_bfm_nomouth.h5";
+    sLandmarkIdxPath = "../data/map_dlib-bfm_rk.anl";
     dFx = 1744.327628674942;
     dFy = 1747.838275588676;
     dCx = 800;

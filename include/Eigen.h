@@ -33,13 +33,14 @@
 #include <Eigen/Sparse>
 #include <Eigen/SparseCholesky>
 
-
+typedef Eigen::Matrix<unsigned char, 4, 1> Vector4uc;
 typedef Eigen::Matrix<unsigned char, 3, 1> Vector3uc;
 
 
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Eigen::Vector2f)
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Eigen::Vector3f)
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Eigen::Vector4f)
+EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Vector4uc)
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Vector3uc)
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Eigen::VectorXf)
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Eigen::Matrix4f)
