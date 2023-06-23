@@ -5,3 +5,5 @@ build/
 *.dat
 .vscode/
 *.h5
+data/
+output/
