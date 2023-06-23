@@ -1,12 +1,12 @@
 #pragma once
-#include "SimpleMesh.h"
+#include "SimpleMesh_forCeresExample.h"
 #include "Eigen.h"
 
 class PointCloud {
 public:
 	PointCloud() {}
 
-	PointCloud(const SimpleMesh& mesh) {
+	PointCloud(const SimpleMesh_ceres& mesh) {
 		const auto& vertices = mesh.getVertices();
 		const auto& triangles = mesh.getTriangles();
 		const unsigned nVertices = vertices.size();

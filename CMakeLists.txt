@@ -45,8 +45,8 @@ endif()
 # )
 
 set(SOURCES
-   ./src/bfm_manager.cpp
-   ./src/FreeImageHelper.cpp
+   ./include/bfm_manager.cpp
+   ./include/FreeImageHelper.cpp
 )
 
 add_library(face_reconstruction SHARED ${SOURCES})
@@ -181,7 +181,7 @@ endif()
 
 OPTION(CERES_EXAMPLE "Ceres optimizer example from exercise 5." ON)
 if(CERES_EXAMPLE)
-   add_executable(ceres_example examples/example_ceres_optimizer.cpp ./src/FreeImageHelper.cpp)
+   add_executable(ceres_example examples/example_ceres_optimizer.cpp)
    target_link_libraries(ceres_example face_reconstruction)
 endif()
 
