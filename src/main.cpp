@@ -2,8 +2,9 @@
 #include <fstream>
 
 #include "../include/Eigen.h"
-#include "../include/SimpleMesh.h"
+// #include "../include/SimpleMesh.h"
 #include "../include/FacialLandmarkExtractor.h"
+#include "../include/ProcrustesAligner.h"
 
 #include "../BFM_basic_pipeline/src/bfm_manager.cpp"
 
@@ -11,6 +12,40 @@
 #include <opencv2/imgproc.hpp>
 
 const bool DEBUG_OUT_ENABLED = true;
+
+
+//TODO: Move this to a appropriate place
+void writeLandmarkPly(std::string fn, std::vector<Vector3f> & landmarks) {
+	std::ofstream out;
+	/* Note: In Linux Cpp, we should use std::ios::out as flag, which is not necessary in Windows */
+	out.open(fn, std::ios::out | std::ios::binary);
+	if(!out.is_open())
+	{
+		LOG(ERROR) << "Creation of " << fn << " failed.";
+		return;
+	}
+
+	std::cout<<"Writing ply ...."<<std::endl;
+
+	out << "ply\n";
+	out << "format ascii 1.0\n";
+	out << "comment Made from the 3D Morphable Face Model of the Univeristy of Basel, Switzerland.\n";
+	out << "element vertex " << landmarks.size() << "\n";
+	out << "property float x\n";
+	out << "property float y\n";
+	out << "property float z\n";
+	out << "end_header\n";
+
+	// unsigned long int cnt = 0;
+	for (Vector3f landmark : landmarks)
+	{
+		out<<landmark.x()<<" "<<landmark.y()<<" "<<landmark.z()<<"\n";
+	}
+
+	out.close();
+	std::cout<<"Finish write ply"<<std::endl;
+}
+
 
 int main()
 {
@@ -70,20 +105,60 @@ int main()
         position_screen << landmark.x(), landmark.y(), 1.0;
 
         camera_landmarks.push_back(intrinsics.inverse() * (depth_map(landmark.x(), landmark.y()) * position_screen));
-
-        if (DEBUG_OUT_ENABLED)
-        {
-            std::cout << camera_landmarks.back()(0)
-                    << " " << camera_landmarks.back()(1)
-                    << " " << camera_landmarks.back()(2)
-                    << std::endl;
-        }
     }
 
     // Generate BFM Model
     std::string bfm_h5_path = "../BFM_basic_pipeline/Data/model2017-1_bfm_nomouth.h5";
     std::string landmark_id_path = "../BFM_basic_pipeline/Data/map_dlib-bfm_rk.anl";
     std::unique_ptr<BfmManager> bfm_manager (new BfmManager(bfm_h5_path, std::array<double, 4>{dFx, dFy, dCx, dCy}, landmark_id_path));
+
+    // Get landmarks form BFM
+    std::vector<Vector3f> bfm_landmarks;
+    for (size_t i = 0; i < bfm_manager->getMapLandmarkIndices().size(); i++)
+    {
+        bfm_landmarks.push_back(Vector3f(bfm_manager->getLandmarkCurrentBlendshape()(i * 3),
+                                         bfm_manager->getLandmarkCurrentBlendshape()(i * 3 + 1),
+                                         bfm_manager->getLandmarkCurrentBlendshape()(i * 3 + 2)));
+    }
+
+    assert(camera_landmarks.size() == bfm_landmarks.size() && "Number of landmarks extracted form image must be equal to the ones form BFM");
+
+
+    // Remove invalid points (Depth measurement available zero)
+    size_t i = 0;
+    while (i < camera_landmarks.size()) {
+        if (camera_landmarks[i](2) == 0) {
+            camera_landmarks.erase(camera_landmarks.begin() + i);
+            bfm_landmarks.erase(bfm_landmarks.begin() + i);
+        }
+        else {
+            ++i;
+        }
+    }
+
+    writeLandmarkPly("dlib_landmarks.ply", camera_landmarks);
+    bfm_manager->writeLandmarkPly("bfm_landmarks_before_procrustes.ply");
+
+    ProcrustesAligner procrustes;
+    Matrix4f pose_estimate = procrustes.estimatePose(bfm_landmarks, camera_landmarks);
+
+    std::cout << "Pose Estimation: " << std::endl << pose_estimate << std::endl;
+
+    std::vector<Vector3f> bfm_landmark_transformed;
+    for (Vector3f landmark : bfm_landmarks)
+
+
+
+    // bfm_manager->setMatR(pose_estimate.block<3,3>(0,0).cast<double>());
+    // bfm_manager->setVecT(pose_estimate.block<1,3>(0,3).cast<double>());
+
+    // bfm_manager->genExtParams();
+    // bfm_manager->genFace();
+    // bfm_manager->genLandmarkBlendshape();
+
+    // //write ply
+    // bfm_manager->writeLandmarkPly("bfm_landmarks_after_procrustes.ply");
+
 
     // Display landmarks on image
     if (DEBUG_OUT_ENABLED)
