@@ -46,6 +46,7 @@ endif()
 
 set(SOURCES
    ./src/bfm_manager.cpp
+   ./src/FreeImageHelper.cpp
 )
 
 add_library(face_reconstruction SHARED ${SOURCES})
@@ -56,6 +57,13 @@ target_compile_features(face_reconstruction PRIVATE cxx_std_17)
 # set(HDF5_INCLUDE_DIRS /usr/local/hdf5/include)
 find_package(HDF5 REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(Ceres REQUIRED)
+find_package(flann REQUIRED)
+add_definitions("-D_DISABLE_EXTENDED_ALIGNED_STORAGE")
+
+if (MSVC)
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /bigobj")
+endif()
 ###############################################################################################
 ######################################## Dedendenflanncy ###########################################
 ###############################################################################################
@@ -108,6 +116,9 @@ if(UNIX)
 endif()
 
 message(STATUS "path to Eiegn: ${Eigen3_DIR}")
+message(STATUS "path to ceres cmake information: ${Ceres_DIR}")
+message(STATUS "path to flann cmake information = ${flann_DIR}")
+message(STATUS "path to freeimage include directory: ${FreeImage_INCLUDE_DIR}")
 message(STATUS "path to glog cmake information: ${glog_DIR}")
 message(STATUS "path to HDF5 lib information: ${HDF5_LIBRARIES}")
 message(STATUS "path to HDF5 ROOT information: ${HDF5_ROOT}")
@@ -117,9 +128,10 @@ message(STATUS "path to opencv include information: ${OpenCV_INCLUDE_DIRS}")
 message(STATUS "path to opencv lib information: ${OpenCV_LIBS}")
 
 
+link_directories(${FreeImage_LIBRARY_DIR})
 # Bfm Manager
-target_include_directories(face_reconstruction PUBLIC ./include ${OpenCV_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR} ${FreeImage_INCLUDE_DIR})
-target_link_libraries(face_reconstruction m ${OpenCV_LIBS} ${HDF5_LIBRARIES} ${HDF5_CXX_LIBRARIES} ${Boost_LIBRARIES} glog boost_filesystem dlib::dlib Eigen3::Eigen freeimage)
+target_include_directories(face_reconstruction PUBLIC ./include ${OpenCV_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR} ${FreeImage_INCLUDE_DIR} ${Ceres_INCLUDE_DIR} ${glog_INCLUDE_DIR} ${Flann_INCLUDE_DIR})
+target_link_libraries(face_reconstruction m ${OpenCV_LIBS} ${HDF5_LIBRARIES} ${HDF5_CXX_LIBRARIES} ${Boost_LIBRARIES} glog::glog boost_filesystem dlib::dlib Eigen3::Eigen freeimage Ceres::ceres flann::flann)
 
 ###############################################################################################
 ######################################## Options ##############################################
@@ -165,6 +177,12 @@ OPTION(GEN_BFM_EXAMPLES "Generate usage examples of Basel Face Moldel manager." 
 if(GEN_BFM_EXAMPLES)
    add_executable(gen_faces examples/ex_gen_faces.cpp)
    target_link_libraries(gen_faces face_reconstruction)
+endif()
+
+OPTION(CERES_EXAMPLE "Ceres optimizer example from exercise 5." ON)
+if(CERES_EXAMPLE)
+   add_executable(ceres_example examples/example_ceres_optimizer.cpp ./src/FreeImageHelper.cpp)
+   target_link_libraries(ceres_example face_reconstruction)
 endif()
 
 if(WIN32)

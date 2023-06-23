@@ -30,6 +30,94 @@ class SimpleMesh {
 public:
 	SimpleMesh() {}
 
+	/**
+	 * Constructs a mesh from the current color and depth image.
+	 */
+	SimpleMesh(VirtualSensor& sensor, const Matrix4f& cameraPose, float edgeThreshold = 0.01f) {
+		// Get ptr to the current depth frame.
+		// Depth is stored in row major (get dimensions via sensor.GetDepthImageWidth() / GetDepthImageHeight()).
+		float* depthMap = sensor.getDepth();
+		// Get ptr to the current color frame.
+		// Color is stored as RGBX in row major (4 byte values per pixel, get dimensions via sensor.GetColorImageWidth() / GetColorImageHeight()).
+		BYTE* colorMap = sensor.getColorRGBX();
+
+		// Get depth intrinsics.
+		Matrix3f depthIntrinsics = sensor.getDepthIntrinsics();
+		float fovX = depthIntrinsics(0, 0);
+		float fovY = depthIntrinsics(1, 1);
+		float cX = depthIntrinsics(0, 2);
+		float cY = depthIntrinsics(1, 2);
+
+		// Compute inverse depth extrinsics.
+		Matrix4f depthExtrinsicsInv = sensor.getDepthExtrinsics().inverse();
+
+		// Compute inverse camera pose (mapping from camera CS to world CS).
+		Matrix4f cameraPoseInverse = cameraPose.inverse();
+
+		// Compute vertices with back-projection.
+		m_vertices.resize(sensor.getDepthImageWidth() * sensor.getDepthImageHeight());
+		// For every pixel row.
+		for (unsigned int v = 0; v < sensor.getDepthImageHeight(); ++v) {
+			// For every pixel in a row.
+			for (unsigned int u = 0; u < sensor.getDepthImageWidth(); ++u) {
+				unsigned int idx = v*sensor.getDepthImageWidth() + u; // linearized index
+				float depth = depthMap[idx];
+				if (depth == MINF) {
+					m_vertices[idx].position = Vector4f(MINF, MINF, MINF, MINF);
+					m_vertices[idx].color = Vector4uc(0, 0, 0, 0);
+				}
+				else {
+					// Back-projection and tranformation to world space.
+					m_vertices[idx].position = cameraPoseInverse * depthExtrinsicsInv * Vector4f((u - cX) / fovX * depth, (v - cY) / fovY * depth, depth, 1.0f);
+
+					// Project position to color map.
+					Vector3f proj = sensor.getColorIntrinsics() * (sensor.getColorExtrinsics() * cameraPose * m_vertices[idx].position).block<3, 1>(0, 0);
+					proj /= proj.z(); // dehomogenization
+					unsigned int uCol = (unsigned int)std::floor(proj.x());
+					unsigned int vCol = (unsigned int)std::floor(proj.y());
+					if (uCol >= sensor.getColorImageWidth()) uCol = sensor.getColorImageWidth() - 1;
+					if (vCol >= sensor.getColorImageHeight()) vCol = sensor.getColorImageHeight() - 1;
+					unsigned int idxCol = vCol*sensor.getColorImageWidth() + uCol; // linearized index color
+																					//unsigned int idxCol = idx; // linearized index color
+
+					// Write color to vertex.
+					m_vertices[idx].color = Vector4uc(colorMap[4 * idxCol + 0], colorMap[4 * idxCol + 1], colorMap[4 * idxCol + 2], colorMap[4 * idxCol + 3]);
+				}
+			}
+		}
+
+		// Compute triangles (faces).
+		m_triangles.reserve((sensor.getDepthImageHeight() - 1) * (sensor.getDepthImageWidth() - 1) * 2);
+		for (unsigned int i = 0; i < sensor.getDepthImageHeight() - 1; i++) {
+			for (unsigned int j = 0; j < sensor.getDepthImageWidth() - 1; j++) {
+				unsigned int i0 = i*sensor.getDepthImageWidth() + j;
+				unsigned int i1 = (i + 1)*sensor.getDepthImageWidth() + j;
+				unsigned int i2 = i*sensor.getDepthImageWidth() + j + 1;
+				unsigned int i3 = (i + 1)*sensor.getDepthImageWidth() + j + 1;
+
+				bool valid0 = m_vertices[i0].position.allFinite();
+				bool valid1 = m_vertices[i1].position.allFinite();
+				bool valid2 = m_vertices[i2].position.allFinite();
+				bool valid3 = m_vertices[i3].position.allFinite();
+
+				if (valid0 && valid1 && valid2) {
+					float d0 = (m_vertices[i0].position - m_vertices[i1].position).norm();
+					float d1 = (m_vertices[i0].position - m_vertices[i2].position).norm();
+					float d2 = (m_vertices[i1].position - m_vertices[i2].position).norm();
+					if (edgeThreshold > d0 && edgeThreshold > d1 && edgeThreshold > d2)
+						addFace(i0, i1, i2);
+				}
+				if (valid1 && valid2 && valid3) {
+					float d0 = (m_vertices[i3].position - m_vertices[i1].position).norm();
+					float d1 = (m_vertices[i3].position - m_vertices[i2].position).norm();
+					float d2 = (m_vertices[i1].position - m_vertices[i2].position).norm();
+					if (edgeThreshold > d0 && edgeThreshold > d1 && edgeThreshold > d2)
+						addFace(i1, i3, i2);
+				}
+			}
+		}
+	}
+
 	void clear() {
 		m_vertices.clear();
 		m_triangles.clear();
@@ -130,7 +218,7 @@ public:
 		for (unsigned int i = 0; i < numP; i++) {
 			unsigned int num_vs;
 			file >> num_vs;
-			ASSERT((num_vs == 3) && "We can only read triangular mesh.");
+			ASSERT(num_vs == 3 && "We can only read triangular mesh.");
 			
 			Triangle t;
 			file >> t.idx0 >> t.idx1 >> t.idx2;
@@ -174,7 +262,7 @@ public:
 	 * Joins two meshes together by putting them into the common mesh and transforming the vertex positions of
 	 * mesh1 with transformation 'pose1to2'. 
 	 */
-	static SimpleMesh joinMeshes(const SimpleMesh& mesh1, const SimpleMesh& mesh2, const Matrix4f& pose1to2 = Matrix4f::Identity()) {
+	static SimpleMesh joinMeshes(const SimpleMesh& mesh1, const SimpleMesh& mesh2, Matrix4f pose1to2 = Matrix4f::Identity()) {
 		SimpleMesh joinedMesh;
 		const auto& vertices1  = mesh1.getVertices();
 		const auto& triangles1 = mesh1.getTriangles();
@@ -184,27 +272,27 @@ public:
 		auto& joinedVertices  = joinedMesh.getVertices();
 		auto& joinedTriangles = joinedMesh.getTriangles();
 
-		const unsigned nVertices1 = static_cast<unsigned>(vertices1.size());
-		const unsigned nVertices2 = static_cast<unsigned>(vertices2.size());
+		const unsigned nVertices1 = vertices1.size();
+		const unsigned nVertices2 = vertices2.size();
 		joinedVertices.reserve(nVertices1 + nVertices2);
 
-		const unsigned nTriangles1 = static_cast<unsigned>(triangles1.size());
-		const unsigned nTriangles2 = static_cast<unsigned>(triangles2.size());
+		const unsigned nTriangles1 = triangles1.size();
+		const unsigned nTriangles2 = triangles2.size();
 		joinedTriangles.reserve(nVertices1 + nVertices2);
 
 		// Add all vertices (we need to transform vertices of mesh 1).
-		for (auto i = 0u; i < nVertices1; ++i) {
+		for (int i = 0; i < nVertices1; ++i) {
 			const auto& v1 = vertices1[i];
 			Vertex v;
 			v.position = pose1to2 * v1.position;
 			v.color = v1.color;
 			joinedVertices.push_back(v);
 		}
-		for (auto i = 0u; i < nVertices2; ++i) joinedVertices.push_back(vertices2[i]);
+		for (int i = 0; i < nVertices2; ++i) joinedVertices.push_back(vertices2[i]);
 
 		// Add all faces (the indices of the second mesh need to be added an offset).
-		for (auto i = 0u; i < nTriangles1; ++i) joinedTriangles.push_back(triangles1[i]);
-		for (auto i = 0u; i < nTriangles2; ++i) {
+		for (int i = 0; i < nTriangles1; ++i) joinedTriangles.push_back(triangles1[i]);
+		for (int i = 0; i < nTriangles2; ++i) {
 			const auto& t2 = triangles2[i];
 			Triangle t{ t2.idx0 + nVertices1, t2.idx1 + nVertices1, t2.idx2 + nVertices1 };
 			joinedTriangles.push_back(t);
@@ -288,7 +376,7 @@ public:
 			for (unsigned i2 = 0; i2 < slices; i2++)
 			{
 				auto& v = vertices[vIndex++];
-				float theta = float(i2) * 2.0f * float(M_PI) / float(slices);
+				float theta = float(i2) * 2.0f * M_PI / float(slices);
 				v.position = Vector4f{ p0.x() + radius * cosf(theta), p0.y() + radius * sinf(theta), p0.z() + height * float(i) / float(stacks), 1.f };
 				v.color = color;
 			}
