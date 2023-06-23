@@ -5,6 +5,8 @@
 #include "../include/SimpleMesh.h"
 #include "../include/FacialLandmarkExtractor.h"
 
+#include "../BFM_basic_pipeline/src/bfm_manager.cpp"
+
 // Includes for debugging only
 #include <opencv2/imgproc.hpp>
 
@@ -77,6 +79,11 @@ int main()
                     << std::endl;
         }
     }
+
+    // Generate BFM Model
+    std::string bfm_h5_path = "../BFM_basic_pipeline/Data/model2017-1_bfm_nomouth.h5";
+    std::string landmark_id_path = "../BFM_basic_pipeline/Data/map_dlib-bfm_rk.anl";
+    std::unique_ptr<BfmManager> bfm_manager (new BfmManager(bfm_h5_path, std::array<double, 4>{dFx, dFy, dCx, dCy}, landmark_id_path));
 
     // Display landmarks on image
     if (DEBUG_OUT_ENABLED)

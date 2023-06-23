@@ -4,6 +4,7 @@ project(face_reconstruction)
 
 set(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
+add_subdirectory(BFM_basic_pipeline bfm_manager)
 add_subdirectory(../libs/dlib dlib_build)
 
 # Set C++ flags
@@ -21,4 +22,4 @@ add_executable(face_reconstruction src/main.cpp)
 
 include_directories(face_reconstruction PUBLIC ${INCLUDE_DIR} ${OpenCV_INCLUDE_DIRS})
 
-target_link_libraries(face_reconstruction dlib::dlib Eigen3::Eigen ${OpenCV_LIBS})
+target_link_libraries(face_reconstruction bfm_manager dlib::dlib Eigen3::Eigen ${OpenCV_LIBS})
