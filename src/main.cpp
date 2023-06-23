@@ -33,8 +33,8 @@ int main()
     landmark_extractor.process_image(dataset_folder + rgb_filename);
     std::vector<Eigen::Vector2i> landmarks = landmark_extractor.get_landmarks();
 
-    //Load Depth map
-    Eigen::MatrixXf depth_map(256, 256);
+    // Load Depth map
+    Eigen::MatrixXi depth_map(256, 256);
 
     std::ifstream file(dataset_folder + depth_txt_filename);
     if (!file.is_open()) {
@@ -47,18 +47,19 @@ int main()
     uint y_offset = 74;
     while (file >> x >> y >> depth)
     {
-        depth_map(x-x_offset, y-y_offset) = depth / 1000.0f;
+        depth_map(x-x_offset, y-y_offset) = depth;
     }
 
+    // Kinect intrinsics TODO: verify that this is correct
     Matrix3f intrinsics;
-
     intrinsics << 525.0f,   0.0f, (319.5f - x_offset),
                     0.0f, 525.0f, (239.5f - y_offset),
                     0.0f,   0.0f,                1.0f;
 
+
+    // Backproject landmarks
     for (Eigen::Vector2i landmark : landmarks)
     {
-
         Vector3f position_screen;
         position_screen << landmark.x(), landmark.y(), 1.0;
 
