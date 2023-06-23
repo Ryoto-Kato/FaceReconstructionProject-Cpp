@@ -7,4 +7,5 @@ build/
 *.h5
 /libs
 data/
+libs/
 output/
