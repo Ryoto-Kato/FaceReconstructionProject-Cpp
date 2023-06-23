@@ -51,23 +51,31 @@ int main()
     }
 
     // Kinect intrinsics TODO: verify that this is correct
+    float dFx = 525.0;
+    float dFy = 525.0;
+    float dCx = 319.5f - x_offset;
+    float dCy = 239.5f - y_offset;
     Matrix3f intrinsics;
-    intrinsics << 525.0f,   0.0f, (319.5f - x_offset),
-                    0.0f, 525.0f, (239.5f - y_offset),
-                    0.0f,   0.0f,                1.0f;
-
+    intrinsics << dFx, 0.0f,  dCx,
+                 0.0f,  dFy,  dCy,
+                 0.0f, 0.0f, 1.0f;
 
     // Backproject landmarks
+    std::vector<Vector3f> camera_landmarks;
     for (Eigen::Vector2i landmark : landmarks)
     {
         Vector3f position_screen;
         position_screen << landmark.x(), landmark.y(), 1.0;
 
-        Vector3f position_camera = intrinsics.inverse() * (depth_map(landmark.x(), landmark.y()) * position_screen);
-        std::cout << position_camera(0)
-                  << " " << position_camera(1)
-                  << " " << position_camera(2)
-                  << std::endl;
+        camera_landmarks.push_back(intrinsics.inverse() * (depth_map(landmark.x(), landmark.y()) * position_screen));
+
+        if (DEBUG_OUT_ENABLED)
+        {
+            std::cout << camera_landmarks.back()(0)
+                    << " " << camera_landmarks.back()(1)
+                    << " " << camera_landmarks.back()(2)
+                    << std::endl;
+        }
     }
 
     // Display landmarks on image
