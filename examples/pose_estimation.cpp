@@ -13,10 +13,10 @@
 // Includes for debugging only
 #include <opencv2/imgproc.hpp>
 
-#define DEBUG
-
 const std::string left_line = "--------";
 const std::string right_line = "--------";
+
+#define DEBUG
 
 int main(int argc, char *argv[])
 {
@@ -92,6 +92,16 @@ int main(int argc, char *argv[])
     //containing the pixel coordinate of the facial landmark
     std::vector<Vector2i> detected_pix_landmarks = landmarks_extractor.get_landmarks();
 
+    //Get RGB
+    cv::Mat rgb_cvMat = landmarks_extractor.getRGB_cvMat();
+    int rgb_rows = rgb_cvMat.rows;
+    int rgb_cols = rgb_cvMat.cols;
+
+    //Get matrix each element containing vector3uc
+    MatrixRGB mat_rgb= landmarks_extractor.getRGB_EigenMat();
+    //Get matrix each element containing vector4uc
+    MatrixRGBA mat_rgba= landmarks_extractor.getRGBA_EigenMat();
+
     //Load depth map
     MatrixXi depth_map(256, 256);
 
@@ -114,6 +124,41 @@ int main(int argc, char *argv[])
         //assign depth value to the corresponding element
         depth_map(x-x_offset, y-y_offset) = depth;
     }
+
+    #ifdef DEBUG
+        std::cout<<left_line<<"RGB image content with depth (r,g,b, depth[mm])"<<right_line<<std::endl;
+
+        /*
+        * check the raw data by reading cv::Mat rgb_cvMat
+        */
+        int rows = rgb_cvMat.rows;
+        int cols = rgb_cvMat.cols;
+
+        // for(unsigned int r = 0; r < rows; r++){
+        //     for(unsigned int c = 0; c<cols; c++){
+        //         cv::Vec3b intensity = rgb_cvMat.at<cv::Vec3b>(r, c);
+        //         unsigned char blue = intensity.val[0];
+        //         unsigned char green = intensity.val[1];
+        //         unsigned char red = intensity.val[2];
+        //         std::cout<<"("<<(int)blue<<","<<(int)green<<","<<(int)red<<")"<<", ";
+        //     }
+        //     std::cout<<std::endl;
+        // }
+
+        /*
+        * check the retrieved rgb channel reading Eigen::MatrixRGB or Eigen::MatrixRGBA
+        */
+
+        for(unsigned int r = 0; r <rows; r++){
+            for(unsigned int c = 0; c <cols; c++){
+                unsigned char blue = mat_rgb(r, c).x();
+                unsigned char green = mat_rgb(r, c).y();
+                unsigned char red = mat_rgb(r, c).z();
+                std::cout<<"("<<(int)blue<<","<<(int)green<<","<<(int)red<<","<<depth_map(r, c)<<")"<<",\t";
+            }
+            std::cout<<std::endl;
+        }
+    #endif
 
     // Kinect intrinsics TODO: verify that this is correct
     float dFx = 525.0;
