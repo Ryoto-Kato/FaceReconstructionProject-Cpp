@@ -8,6 +8,7 @@
 // #include <opencv2/highgui.hpp> original
 // since from openCV4 we need to read header directory under opencv2
 #include <opencv2/highgui.hpp>
+#include <opencv2/core/matx.hpp>
 #include <dlib/image_processing/frontal_face_detector.h>
 #include <dlib/image_processing/render_face_detections.h>
 #include <dlib/image_processing.h>
@@ -67,7 +68,63 @@ public:
     std::vector<Eigen::Vector2i> get_landmarks()
     {
         return landmarks;
-    };
+    }
+
+    inline cv::Mat getRGB_cvMat(){
+        return image;
+    }
+
+    MatrixRGB getRGB_EigenMat(){
+        int rows = image.rows;
+        int cols = image.cols;
+
+        MatrixRGB mat_rgb(rows, cols);
+
+        for(unsigned int r = 0; r < rows; r++){
+            for(unsigned int c = 0; c<cols; c++){
+                cv::Vec3b intensity = image.at<cv::Vec3b>(r, c);
+                unsigned char blue = intensity.val[0];
+                unsigned char green = intensity.val[1];
+                unsigned char red = intensity.val[2];
+                Vector3uc _pix;
+                _pix.x() = blue;
+                _pix.y() = green;
+                _pix.z() = red;
+
+                mat_rgb(r, c) = _pix;
+            }
+        }
+
+        return mat_rgb;
+
+    }
+
+    MatrixRGBA getRGBA_EigenMat(){
+        int rows = image.rows;
+        int cols = image.cols;
+
+        MatrixRGBA mat_rgba(rows, cols);
+
+        for(unsigned int r = 0; r < rows; r++){
+            for(unsigned int c = 0; c<cols; c++){
+                cv::Vec3b intensity = image.at<cv::Vec3b>(r, c);
+                unsigned char blue = intensity.val[0];
+                unsigned char green = intensity.val[1];
+                unsigned char red = intensity.val[2];
+                Vector4uc _pix;
+                unsigned int maximum = 255;
+                _pix.x() = blue;
+                _pix.y() = green;
+                _pix.z() = red;
+                _pix.w() = (unsigned char)maximum;
+                
+                mat_rgba(r, c) = _pix;
+            }
+        }
+
+        return mat_rgba;
+
+    }
 
 private:
     cv::Mat image;
