@@ -1,6 +1,7 @@
 /*
  * Combining the bfm_init and Pose Estimation part
 */
+#include <algorithm>
 #include "FPC_ICPOptimizer.h"
 #include "BFM.h"
 #include <iostream>
@@ -22,6 +23,7 @@ const std::string right_line = "--------";
 
 #define DEBUG true
 #define USE_POINT_TO_PLANE true
+#define ONLY_SELECTED_LANDMARKS false
 
 int main(int argc, char *argv[])
 {
@@ -191,12 +193,42 @@ int main(int argc, char *argv[])
     //Check if the number of detected ladnmark and BFM registred landmarks are identical
     assert(dlib_landmark_vertexPos.size() == bfm_landmarks_vertexPos.size() && "Number of landmarks extracted form image must be equal to the ones form BFM");
 
+    // Test procrustes with less correspondences
+    /*
+    * Try with less correspondence
+    * only consider 1, 9, 17, 18, 22, 23, 27, 28, 31, 37, 40, 43, 46, 49, 55, 
+    */
+    
+    if(ONLY_SELECTED_LANDMARKS){
+        //select from range 0-67
+        std::vector<int> considered_landmarks_Ids = {0, 8, 16, 17, 21, 22, 26, 27, 30, 36, 41, 42, 45, 48, 54};
+        std::cout<<"ONLY consider "<<considered_landmarks_Ids.size()<<" landmarks"<<std::endl;
+
+        std::vector<bool> landmark_mask(original_num_landmarks);
+        std::fill(landmark_mask.begin(), landmark_mask.end(), false);
+
+        for(auto & id : considered_landmarks_Ids){
+            landmark_mask[id] = true;
+        }
+
+        for(unsigned int i = 0; i < original_num_landmarks; i++){
+            if(!landmark_mask[i]){
+                dlib_landmark_vertexPos.erase(dlib_landmark_vertexPos.begin() + i);
+                bfm_landmarks_vertexPos.erase(bfm_landmarks_vertexPos.begin() + i);
+                bfm_landmarks.erase(bfm_landmarks.begin() + i);
+                detected_pix_landmarks.erase(detected_pix_landmarks.begin()+i);
+            }
+        }
+    }
+
+
     // Remove invalid points (Depth measurement available zero)
     unsigned int i = 0;
     unsigned int truncated_num_landmarks = 0;
     std::cout<<"Depth of detected landmarks"<<std::endl;
 
-    while (i < original_num_landmarks) {
+
+    while (i < dlib_landmark_vertexPos.size()) {
         if (dlib_landmark_vertexPos[i].z() <= 0.0) {
             // if the depth of the dlib landmark is 0, we eliminate the point (remove outlier)
             std::cout<<i<<"th landmark"<<std::endl;
@@ -207,6 +239,7 @@ int main(int argc, char *argv[])
             detected_pix_landmarks.erase(detected_pix_landmarks.begin()+i);
         }
         ++i;
+        truncated_num_landmarks++;
     }
 
     //Check if the number of detected ladnmark and BFM registred landmarks are identical
