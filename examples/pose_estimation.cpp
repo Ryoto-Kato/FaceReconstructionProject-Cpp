@@ -24,6 +24,7 @@ const std::string right_line = "--------";
 #define DEBUG true
 #define USE_POINT_TO_PLANE false
 #define ONLY_SELECTED_LANDMARKS true
+#define ps_ICP_with_allAvailableLandmarks false
 
 int main(int argc, char *argv[])
 {
@@ -200,6 +201,10 @@ int main(int argc, char *argv[])
     unsigned int num_truncated_landmarks = 0;
     std::cout<<"Depth of detected landmarks"<<std::endl;
 
+    //Map 68 landmark id to id in available landmark set
+    std::map<int, int> map_LMid2ALMid;
+    int id_available_landmark = 0;
+
     while (counter < dlib_landmarks_vertexPos.size()) {
         if (dlib_landmarks_vertexPos[counter].z() <= 0.0) {
             // if the depth of the dlib landmark is 0, we eliminate the point (remove outlier)
@@ -210,12 +215,22 @@ int main(int argc, char *argv[])
             // face_landmarks.erase(face_landmarks.begin() + i);
             // dlib_landmarks.erase(dlib_landmarks.begin()+i);
             available_landmark_mask[counter] = false;
+            map_LMid2ALMid[counter] = -1;
             num_truncated_landmarks++;
         }else{
             available_landmark_mask[counter] = true;
+            map_LMid2ALMid[counter] = id_available_landmark;
+            id_available_landmark++;
         }
         ++counter;
     }
+
+    #ifdef DEBUG
+    std::cout<<"Map landmark id to available landmark id"<<std::endl;
+    for(auto & pair : map_LMid2ALMid){
+        std::cout<<pair.first<<": "<<pair.second<<std::endl;
+    }
+    #endif
 
     std::vector<Vector3f> available_bfm_landmarks_vertexPos;
     std::vector<Landmarks> available_face_landmarks;
@@ -253,21 +268,29 @@ int main(int argc, char *argv[])
     // Test procrustes with less correspondences
     /*
     * Try with less correspondence
-    * only consider 1, 9, 17, 18, 22, 23, 27, 28, 31, 37, 40, 43, 46, 49, 55, 
+    * only consider some of detected/available (valid, non-zero depth) landmark
     */
     
     if(ONLY_SELECTED_LANDMARKS){
-        //select from range 0-67
-        // std::vector<int> considered_landmarks_Ids = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 20, 21, 25, 26, 27, 28, 29, 30, 34, 35, 38, 41, 44, 47, 49, 51, 53, 55, 57};
-        std::vector<int> considered_landmarks_Ids = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 18, 23};
+        /*
+        * select from range 0-67 (from 0 to 67)
+        * e.g.,  std::vector<int> considered_landmarks_Ids = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 20, 21, 25, 26, 27, 28, 29, 30, 34, 35, 38, 41, 44, 47, 49, 51, 53, 55, 57};
+        * 
+        */ 
+        std::vector<int> considered_landmarks_Ids = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 19, 24};
 
+        #ifdef DEBUG
         std::cout<<"ONLY consider "<<considered_landmarks_Ids.size()<<" landmarks"<<std::endl;
+        #endif
 
         std::vector<bool> landmark_mask(num_available_landmarks);
         std::fill(landmark_mask.begin(), landmark_mask.end(), false);
 
         for(auto & id : considered_landmarks_Ids){
-            landmark_mask[id] = true;
+            int _landmark_id = map_LMid2ALMid[id];
+            if(_landmark_id!=-1){
+                landmark_mask[map_LMid2ALMid[id]] = true;
+            }
         }
 
         for(unsigned int i = 0; i < num_available_landmarks; i++){
@@ -326,14 +349,14 @@ int main(int argc, char *argv[])
     #endif
 
     // Get transformed BFM landmarks given estimatePose 
-    std::vector<Vector3f> transformed_onlyProcrustes_bfm_landmarks_vertexPos;
+    std::vector<Vector3f> transformed_onlyProcrustes_available_bfm_landmarks_vertexPos;
     std::vector<Vector3f> transformed_ps_bfm_landmarks_vertexPos;
-    bfm.apply_SE3_to_BFMLandmarks(Procrustes_estimatedPose, bfm_landmarks_vertexPos, transformed_onlyProcrustes_bfm_landmarks_vertexPos, DEBUG);
+    bfm.apply_SE3_to_BFMLandmarks(Procrustes_estimatedPose, available_bfm_landmarks_vertexPos, transformed_onlyProcrustes_available_bfm_landmarks_vertexPos, DEBUG);
     bfm.apply_SE3_to_BFMLandmarks(Procrustes_estimatedPose, ps_bfm_landmarks_vertexPos, transformed_ps_bfm_landmarks_vertexPos, DEBUG);
 
     //Write BFM landmarks point cloud which is transformed only by Procrustes
     std::cout<<"Write .ply given only Procrustes transformed BFM landmarks"<<std::endl;
-    bfm.writeLandmarkPly("../output/transformed_onlyProcrustes_landmark_bfm.ply", transformed_onlyProcrustes_bfm_landmarks_vertexPos);
+    bfm.writeLandmarkPly("../output/transformed_onlyProcrustes_landmark_bfm.ply", transformed_onlyProcrustes_available_bfm_landmarks_vertexPos);
     
     /* ICP for pose estimation
     *   Input
@@ -348,9 +371,19 @@ int main(int argc, char *argv[])
     */
 
     // Create FacePointCloud instance for Sparse ICP between dlib_landmark and bfm_landmark which is transformed by Procrustes
-    FacePointCloud FPC_dlib_landmark{ps_dlib_landmarks_vertexPos, ps_dlib_landmark_triangleIdLists};
-    FacePointCloud FPC_bfm_landmark{transformed_ps_bfm_landmarks_vertexPos, ps_bfm_landmark_triangleIdLists};
-    
+    /* Select which ICP will you use
+    *  bool ICP_with_allAvailableLandmarks = true;
+    *  if ICP_with_allAvailableLandmarks = false, we use selected landmarks
+    */
+
+    #if ps_ICP_with_allAvailableLandmarks == false
+        FacePointCloud FPC_dlib_landmark{ps_dlib_landmarks_vertexPos, ps_dlib_landmark_triangleIdLists};
+        FacePointCloud FPC_bfm_landmark{transformed_ps_bfm_landmarks_vertexPos, ps_bfm_landmark_triangleIdLists};
+    #else
+        FacePointCloud FPC_dlib_landmark{available_dlib_landmarks_vertexPos, dlib_landmark_triangleIdLists};
+        FacePointCloud FPC_bfm_landmark{transformed_onlyProcrustes_available_bfm_landmarks_vertexPos, bfm_landmark_triangleIdLists};
+    #endif
+
     //check if the points are registered as members of the instance
     #ifdef DEBUG
         std::cout<<"FPC_dlib_landmark"<<std::endl;
@@ -405,7 +438,7 @@ int main(int argc, char *argv[])
 
     // Get transformed BFM landmarks given estimatePose 
     std::vector<Vector3f> transformed_ProcrustesAndICP_bfm_landmarks_vertexPos;
-    bfm.apply_SE3_to_BFMLandmarks(ICP_estimatedPose, transformed_onlyProcrustes_bfm_landmarks_vertexPos, transformed_ProcrustesAndICP_bfm_landmarks_vertexPos, DEBUG);
+    bfm.apply_SE3_to_BFMLandmarks(ICP_estimatedPose, transformed_onlyProcrustes_available_bfm_landmarks_vertexPos, transformed_ProcrustesAndICP_bfm_landmarks_vertexPos, DEBUG);
 
     //Write BFM landmarks point cloud which is transformed only by Procrustes
     std::cout<<"Write .ply given only Procrustes transformed BFM landmarks"<<std::endl;
