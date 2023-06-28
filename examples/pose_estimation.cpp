@@ -24,7 +24,9 @@ const std::string right_line = "--------";
 #define DEBUG true
 #define USE_POINT_TO_PLANE false
 #define ONLY_SELECTED_LANDMARKS true
+#define ps_ICP false
 #define ps_ICP_with_allAvailableLandmarks false
+
 
 int main(int argc, char *argv[])
 {
@@ -376,6 +378,8 @@ int main(int argc, char *argv[])
     *  if ICP_with_allAvailableLandmarks = false, we use selected landmarks
     */
 
+    #if ps_ICP == true
+
     #if ps_ICP_with_allAvailableLandmarks == false
         FacePointCloud FPC_dlib_landmark{ps_dlib_landmarks_vertexPos, ps_dlib_landmark_triangleIdLists};
         FacePointCloud FPC_bfm_landmark{transformed_ps_bfm_landmarks_vertexPos, ps_bfm_landmark_triangleIdLists};
@@ -444,6 +448,7 @@ int main(int argc, char *argv[])
     std::cout<<"Write .ply given only Procrustes transformed BFM landmarks"<<std::endl;
     bfm.writeLandmarkPly("../output/transformed_ProcrustesAndICP_bfm_landmarks.ply", transformed_ProcrustesAndICP_bfm_landmarks_vertexPos);
     
+    #endif
     /* TODO: Parameter Estimation
     
     
