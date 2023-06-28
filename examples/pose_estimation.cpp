@@ -22,8 +22,8 @@ const std::string left_line = "--------";
 const std::string right_line = "--------";
 
 #define DEBUG true
-#define USE_POINT_TO_PLANE true
-#define ONLY_SELECTED_LANDMARKS false
+#define USE_POINT_TO_PLANE false
+#define ONLY_SELECTED_LANDMARKS true
 
 int main(int argc, char *argv[])
 {
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
     std::vector<std::pair<int, int>> map_Dlib2BFM_landmark = bfm.getMapDlib2BFM_landmark();
     std::vector<Vector3f> bfm_landmarks_vertexPos = bfm.getLandmarkPos();
     //Get landmarks which containing relevant information within Landmark for each
-    std::vector<Landmarks> bfm_landmarks = bfm.getLandmarks();
+    std::vector<Landmarks> face_landmarks = bfm.getLandmarks();
 
     unsigned int original_num_landmarks = bfm.getNumLandmarks();
     
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
         //     _counter_landmark++;
         // }
         
-        for(auto & landmark : bfm_landmarks){
+        for(auto & landmark : face_landmarks){
             std::cout<<left_line<<landmark.id<<"th landmark"<<right_line<<std::endl;
             std::cout<<"(dlibId, bfmId) = "<<"("<<landmark.dlib_id<<", "<<landmark.bfm_id<<")"<<std::endl;
             std::cout<<"(x, y, z) = "<<"("<<landmark.v.position.x()<<", "<<landmark.v.position.y()<<", "<<landmark.v.position.z()<<")"<<std::endl;
@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
     MatrixRGBA mat_rgba= landmarks_extractor.getRGBA_EigenMat();
 
     //containing the pixel coordinate of the facial landmark
-    std::vector<Vector2i> detected_pix_landmarks = landmarks_extractor.get_landmarks();
+    std::vector<Vector2i> dlib_landmarks = landmarks_extractor.get_landmarks();
 
     //Load depth map
     MatrixXf depth_map(256, 256);
@@ -178,20 +178,77 @@ int main(int argc, char *argv[])
     // Backproject landmarks
 
     // Save camera coordinate of the detected landmark on image plane in the camera_landmarks
-    std::vector<Vector3f> dlib_landmark_vertexPos;
-    for (Eigen::Vector2i pix_landmark : detected_pix_landmarks)
+    std::vector<Vector3f> dlib_landmarks_vertexPos;
+    for (Eigen::Vector2i pix_landmark : dlib_landmarks)
     {
         Vector3f position_screen;
         position_screen << pix_landmark.x(), pix_landmark.y(), 1.0;
 
         //backprojection
-        dlib_landmark_vertexPos.push_back(depth_intrinsics.inverse() * (depth_map(pix_landmark.x(), pix_landmark.y()) * position_screen));
+        dlib_landmarks_vertexPos.push_back(depth_intrinsics.inverse() * (depth_map(pix_landmark.x(), pix_landmark.y()) * position_screen));
     }
 
     std::cout<<"Backprojected dlib facial landmarks detected on "<<dataset_folder + rgb_filename<<std::endl;
 
     //Check if the number of detected ladnmark and BFM registred landmarks are identical
-    assert(dlib_landmark_vertexPos.size() == bfm_landmarks_vertexPos.size() && "Number of landmarks extracted form image must be equal to the ones form BFM");
+    assert(dlib_landmarks_vertexPos.size() == bfm_landmarks_vertexPos.size() && "Number of landmarks extracted form image must be equal to the ones form BFM");
+
+    // Remove invalid points (Depth measurement available zero)
+    unsigned int counter = 0;
+    unsigned int num_available_landmarks = 0;
+    std::vector<bool> available_landmark_mask(original_num_landmarks);
+    unsigned int num_truncated_landmarks = 0;
+    std::cout<<"Depth of detected landmarks"<<std::endl;
+
+    while (counter < dlib_landmarks_vertexPos.size()) {
+        if (dlib_landmarks_vertexPos[counter].z() <= 0.0) {
+            // if the depth of the dlib landmark is 0, we eliminate the point (remove outlier)
+            std::cout<<counter<<"th landmark"<<std::endl;
+            std::cout<<dlib_landmarks_vertexPos[counter]<<std::endl;
+            // dlib_landmarks_vertexPos.erase(dlib_landmarks_vertexPos.begin() + i);
+            // bfm_landmarks_vertexPos.erase(bfm_landmarks_vertexPos.begin() + i);
+            // face_landmarks.erase(face_landmarks.begin() + i);
+            // dlib_landmarks.erase(dlib_landmarks.begin()+i);
+            available_landmark_mask[counter] = false;
+            num_truncated_landmarks++;
+        }else{
+            available_landmark_mask[counter] = true;
+        }
+        ++counter;
+    }
+
+    std::vector<Vector3f> available_bfm_landmarks_vertexPos;
+    std::vector<Landmarks> available_face_landmarks;
+    std::vector<Vector3f> available_dlib_landmarks_vertexPos;
+    std::vector<Vector2i> available_dlib_landmarks;
+
+
+    for(unsigned int j = 0; j < original_num_landmarks; j++){
+        if(available_landmark_mask[j]){
+            available_bfm_landmarks_vertexPos.push_back(bfm_landmarks_vertexPos[j]);
+            available_dlib_landmarks_vertexPos.push_back(dlib_landmarks_vertexPos[j]);
+            available_face_landmarks.push_back(face_landmarks[j]);
+            available_dlib_landmarks.push_back(dlib_landmarks[j]);
+        }
+    }
+
+    num_available_landmarks = original_num_landmarks - num_truncated_landmarks;
+    
+    //get landmark image Mat
+    cv::Mat landmark_cvMat = landmarks_extractor.get_landmarkImage(dlib_landmarks, DEBUG);
+    //write landmark image
+    cv::imwrite("detected_landmark.png", landmark_cvMat);
+    //Get triangle list by delaunay triangulation
+    std::vector<Vector3i> dlib_landmark_triangleIdLists = landmarks_extractor.get_triList_landmarks(landmark_cvMat, dlib_landmarks, DEBUG);
+    std::vector<Vector3i> bfm_landmark_triangleIdLists = dlib_landmark_triangleIdLists;
+
+    bfm.write_from_PointCloud_TriangleList("../output/withMesh_truncated_landmark_bfm.ply", dlib_landmarks_vertexPos, dlib_landmark_triangleIdLists);
+
+    // vertex position list and 2d coordinate of landmark list for pose estimation
+    std::vector<Vector3f> ps_bfm_landmarks_vertexPos;
+    std::vector<Landmarks> ps_face_landmarks;
+    std::vector<Vector3f> ps_dlib_landmarks_vertexPos;
+    std::vector<Vector2i> ps_dlib_landmarks;
 
     // Test procrustes with less correspondences
     /*
@@ -201,73 +258,59 @@ int main(int argc, char *argv[])
     
     if(ONLY_SELECTED_LANDMARKS){
         //select from range 0-67
-        std::vector<int> considered_landmarks_Ids = {0, 8, 16, 17, 21, 22, 26, 27, 30, 36, 41, 42, 45, 48, 54};
+        // std::vector<int> considered_landmarks_Ids = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 20, 21, 25, 26, 27, 28, 29, 30, 34, 35, 38, 41, 44, 47, 49, 51, 53, 55, 57};
+        std::vector<int> considered_landmarks_Ids = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 18, 23};
+
         std::cout<<"ONLY consider "<<considered_landmarks_Ids.size()<<" landmarks"<<std::endl;
 
-        std::vector<bool> landmark_mask(original_num_landmarks);
+        std::vector<bool> landmark_mask(num_available_landmarks);
         std::fill(landmark_mask.begin(), landmark_mask.end(), false);
 
         for(auto & id : considered_landmarks_Ids){
             landmark_mask[id] = true;
         }
 
-        for(unsigned int i = 0; i < original_num_landmarks; i++){
-            if(!landmark_mask[i]){
-                dlib_landmark_vertexPos.erase(dlib_landmark_vertexPos.begin() + i);
-                bfm_landmarks_vertexPos.erase(bfm_landmarks_vertexPos.begin() + i);
-                bfm_landmarks.erase(bfm_landmarks.begin() + i);
-                detected_pix_landmarks.erase(detected_pix_landmarks.begin()+i);
+        for(unsigned int i = 0; i < num_available_landmarks; i++){
+            if(landmark_mask[i]){
+                ps_dlib_landmarks_vertexPos.push_back(available_dlib_landmarks_vertexPos[i]);
+                ps_bfm_landmarks_vertexPos.push_back(available_bfm_landmarks_vertexPos[i]);
+                ps_face_landmarks.push_back(available_face_landmarks[i]);
+                ps_dlib_landmarks.push_back(available_dlib_landmarks[i]);
             }
         }
-    }
-
-
-    // Remove invalid points (Depth measurement available zero)
-    unsigned int i = 0;
-    unsigned int truncated_num_landmarks = 0;
-    std::cout<<"Depth of detected landmarks"<<std::endl;
-
-
-    while (i < dlib_landmark_vertexPos.size()) {
-        if (dlib_landmark_vertexPos[i].z() <= 0.0) {
-            // if the depth of the dlib landmark is 0, we eliminate the point (remove outlier)
-            std::cout<<i<<"th landmark"<<std::endl;
-            std::cout<<dlib_landmark_vertexPos[i]<<std::endl;
-            dlib_landmark_vertexPos.erase(dlib_landmark_vertexPos.begin() + i);
-            bfm_landmarks_vertexPos.erase(bfm_landmarks_vertexPos.begin() + i);
-            bfm_landmarks.erase(bfm_landmarks.begin() + i);
-            detected_pix_landmarks.erase(detected_pix_landmarks.begin()+i);
-        }
-        ++i;
-        truncated_num_landmarks++;
+    }else{
+        ps_bfm_landmarks_vertexPos = available_bfm_landmarks_vertexPos;
+        ps_dlib_landmarks_vertexPos = available_dlib_landmarks_vertexPos;
+        ps_face_landmarks = available_face_landmarks;
+        ps_dlib_landmarks = available_dlib_landmarks;
     }
 
     //Check if the number of detected ladnmark and BFM registred landmarks are identical
-    assert(dlib_landmark_vertexPos.size() == bfm_landmarks_vertexPos.size() == bfm_landmarks.size() == detected_pix_landmarks.size() && "Number of landmarks extracted form image must be equal to the ones form BFM");
+    assert(ps_dlib_landmarks_vertexPos.size() == ps_bfm_landmarks_vertexPos.size() == ps_bfm_landmarks.size() == ps_dlib_landmarks.size() && "Number of landmarks extracted form image must be equal to the ones form BFM");
 
-    truncated_num_landmarks = dlib_landmark_vertexPos.size();
-    std::cout<<dlib_landmark_vertexPos.size()<<std::endl;
+    unsigned int num_ps_landmark = 0;
+    num_ps_landmark = ps_dlib_landmarks_vertexPos.size();
+    std::cout<<num_ps_landmark<<std::endl;
     //Write bfm_landmark point cloud
-    bfm.writeLandmarkPly("../output/landmark_bfm.ply", bfm_landmarks_vertexPos);
+    bfm.writeLandmarkPly("../output/landmark_bfm.ply", available_bfm_landmarks_vertexPos);
 
     //Write dlib_landmark point cloud
     std::cout<<"Write .ply given backprojected dlib landmarks"<<std::endl;
-    bfm.writeLandmarkPly("../output/landmark_dlib.ply", dlib_landmark_vertexPos);
+    bfm.writeLandmarkPly("../output/landmark_dlib.ply", available_dlib_landmarks_vertexPos);
 
     //get landmark image Mat
-    cv::Mat landmark_cvMat = landmarks_extractor.get_landmarkImage(detected_pix_landmarks, DEBUG);
+    cv::Mat ps_landmark_cvMat = landmarks_extractor.get_landmarkImage(ps_dlib_landmarks, DEBUG);
     //write landmark image
-    cv::imwrite("detected_landmark.png", landmark_cvMat);
+    cv::imwrite("PS_considered_landmarks.png", ps_landmark_cvMat);
     //Get triangle list by delaunay triangulation
-    std::vector<Vector3i> landmark_triangleIdLists = landmarks_extractor.get_triList_landmarks(landmark_cvMat, detected_pix_landmarks, DEBUG);
-
-    bfm.write_from_PointCloud_TriangleList("../output/withMesh_truncated_landmark_bfm.ply", dlib_landmark_vertexPos, landmark_triangleIdLists);
+    std::vector<Vector3i> ps_dlib_landmark_triangleIdLists = landmarks_extractor.get_triList_landmarks(ps_landmark_cvMat, ps_dlib_landmarks, DEBUG);
+    std::vector<Vector3i> ps_bfm_landmark_triangleIdLists = ps_dlib_landmark_triangleIdLists;
 
     /* TODO: Check if the procrustes is implemented correctly
     Pose Estimation (Procrustes).... 
     * input
     *   Source point
-    *       std::vector<Vector3f> dlib_landmark_vertexPos;
+    *       std::vector<Vector3f> dlib_landmarks_vertexPos;
     *   Target point
     *       std::vector<Vector3f> bfm_landmarks_vertexPos
     */
@@ -275,7 +318,7 @@ int main(int argc, char *argv[])
     // Create new instance for ProcrustesAligner
     ProcrustesAligner aligner;
     // Get SE(3)
-    Matrix4f Procrustes_estimatedPose = aligner.estimatePose(dlib_landmark_vertexPos, bfm_landmarks_vertexPos);
+    Matrix4f Procrustes_estimatedPose = aligner.estimatePose(ps_dlib_landmarks_vertexPos, ps_bfm_landmarks_vertexPos);
 
     #ifdef DEBUG
         std::cout<<"with Procrustes Estimate Pose"<<std::endl;
@@ -284,30 +327,14 @@ int main(int argc, char *argv[])
 
     // Get transformed BFM landmarks given estimatePose 
     std::vector<Vector3f> transformed_onlyProcrustes_bfm_landmarks_vertexPos;
+    std::vector<Vector3f> transformed_ps_bfm_landmarks_vertexPos;
     bfm.apply_SE3_to_BFMLandmarks(Procrustes_estimatedPose, bfm_landmarks_vertexPos, transformed_onlyProcrustes_bfm_landmarks_vertexPos, DEBUG);
+    bfm.apply_SE3_to_BFMLandmarks(Procrustes_estimatedPose, ps_bfm_landmarks_vertexPos, transformed_ps_bfm_landmarks_vertexPos, DEBUG);
 
     //Write BFM landmarks point cloud which is transformed only by Procrustes
     std::cout<<"Write .ply given only Procrustes transformed BFM landmarks"<<std::endl;
     bfm.writeLandmarkPly("../output/transformed_onlyProcrustes_landmark_bfm.ply", transformed_onlyProcrustes_bfm_landmarks_vertexPos);
-
-    // Create new instance for ProcrustesAligner
-    ProcrustesAligner aligner2;
-    // Get SE(3)
-    Matrix4f Procrustes_estimatedPose2 = aligner2.estimatePose(dlib_landmark_vertexPos, transformed_onlyProcrustes_bfm_landmarks_vertexPos);
-
-    #ifdef DEBUG
-        std::cout<<"with Procrustes Estimate Pose2"<<std::endl;
-        std::cout<<Procrustes_estimatedPose2<<std::endl;
-    #endif
-
-    // Get transformed BFM landmarks given estimatePose 
-    std::vector<Vector3f> transformed_onlyProcrustes_bfm_landmarks_vertexPos2;
-    bfm.apply_SE3_to_BFMLandmarks(Procrustes_estimatedPose2, transformed_onlyProcrustes_bfm_landmarks_vertexPos, transformed_onlyProcrustes_bfm_landmarks_vertexPos2, DEBUG);
-
-    //Write BFM landmarks point cloud which is transformed only by Procrustes
-    std::cout<<"Write .ply given only Procrustes transformed BFM landmarks"<<std::endl;
-    bfm.writeLandmarkPly("../output/transformed_onlyProcrustes_landmark_bfm2.ply", transformed_onlyProcrustes_bfm_landmarks_vertexPos2);
-
+    
     /* ICP for pose estimation
     *   Input
     *       BFM landmarks
@@ -316,13 +343,13 @@ int main(int argc, char *argv[])
     *                   [common] std::vector<Triangle> landmark_triangleIdLists; from std::vector<Vector3i> landmark_triangleIdLists 
     *       Dlib landmarks
     *             FacePointCloud dlib_FPC;
-    *                   std::vector<Vertex> Dlib_vertices; from std::vector<Vector3f> dlib_landmark_vertexPos;
+    *                   std::vector<Vertex> Dlib_vertices; from std::vector<Vector3f> dlib_landmarks_vertexPos;
     *                   [common] std::vector<Triangle> landmark_triangleIdLists; from std::vector<Vector3i> landmark_triangleIdLists 
     */
 
     // Create FacePointCloud instance for Sparse ICP between dlib_landmark and bfm_landmark which is transformed by Procrustes
-    FacePointCloud FPC_dlib_landmark{dlib_landmark_vertexPos, landmark_triangleIdLists};
-    FacePointCloud FPC_bfm_landmark{transformed_onlyProcrustes_bfm_landmarks_vertexPos, landmark_triangleIdLists};
+    FacePointCloud FPC_dlib_landmark{ps_dlib_landmarks_vertexPos, ps_dlib_landmark_triangleIdLists};
+    FacePointCloud FPC_bfm_landmark{transformed_ps_bfm_landmarks_vertexPos, ps_bfm_landmark_triangleIdLists};
     
     //check if the points are registered as members of the instance
     #ifdef DEBUG
@@ -356,7 +383,7 @@ int main(int argc, char *argv[])
     // ceres optimizer
 	landmark_optimizer = new FPC_CeresICPOptimizer();
 	
-	landmark_optimizer->setMatchingMaxDistance(1000.f);
+	landmark_optimizer->setMatchingMaxDistance(1e6);
 
 	if(USE_POINT_TO_PLANE){
 		landmark_optimizer->usePointToPlaneConstraints(true);
@@ -364,7 +391,7 @@ int main(int argc, char *argv[])
 	}
 	else{
 		landmark_optimizer->usePointToPlaneConstraints(false);
-		landmark_optimizer->setNbOfIterations(30);
+		landmark_optimizer->setNbOfIterations(1000);
 	}
 
     // Estimate Pose by the ceres optimizer 
@@ -383,7 +410,7 @@ int main(int argc, char *argv[])
     //Write BFM landmarks point cloud which is transformed only by Procrustes
     std::cout<<"Write .ply given only Procrustes transformed BFM landmarks"<<std::endl;
     bfm.writeLandmarkPly("../output/transformed_ProcrustesAndICP_bfm_landmarks.ply", transformed_ProcrustesAndICP_bfm_landmarks_vertexPos);
-
+    
     /* TODO: Parameter Estimation
     
     
