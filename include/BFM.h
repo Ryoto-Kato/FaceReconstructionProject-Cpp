@@ -119,6 +119,46 @@ public:
         return true;
     }
 
+    void write_from_PointCloud_TriangleList(std::string fn, std::vector<Vector3f> & point_cloud, std::vector<Vector3i> & triangle_list){
+        std::ofstream out;
+        /* Note: In Linux Cpp, we should use std::ios::out as flag, which is not necessary in Windows */
+        out.open(fn, std::ios::out | std::ios::binary);
+        if(!out.is_open())
+        {
+            LOG(ERROR) << "Creation of " << fn << " failed.";
+            return;
+        }
+
+        std::cout<<"Writing face mesh ply ("<<fn<<")"<<"....";
+
+        out << "ply\n";
+        out << "format ascii 1.0\n";
+        out << "comment Made from the 3D Morphable Face Model of the Univeristy of Basel, Switzerland.\n";
+        out << "element vertex " << point_cloud.size() << "\n";
+        out << "property float x\n";
+        out << "property float y\n";
+        out << "property float z\n";
+        out << "element face " << triangle_list.size() << "\n";
+        out << "property list uchar int vertex_indices\n";
+        out << "end_header\n";
+
+        // unsigned long int cnt = 0;
+        for (Vector3f point : point_cloud)
+        {
+            out<<point.x()<<" "<<point.y()<<" "<<point.z()<<"\n";
+        }
+
+        unsigned char N_VER_PER_FACE = 3;
+        for (auto & t : triangle_list) 
+        {
+            out<<(int)N_VER_PER_FACE<<" "<<t.x()<<" "<<t.y()<<" "<<t.z()<<"\n";
+        }
+
+        out.close();
+        
+        std::cout<<"Finish face mesh ply ("<<fn<<")"<<std::endl;
+    }
+
     void writeLandmarkPly(std::string fn, std::vector<Vector3f> & landmarks){
         std::ofstream out;
         /* Note: In Linux Cpp, we should use std::ios::out as flag, which is not necessary in Windows */
@@ -318,6 +358,31 @@ public:
 
     inline Parameter_set getParameter_set_EXP(){
         return EXP;
+    }
+
+    void apply_SE3_to_BFMLandmarks(Eigen::Matrix4f & estimate_pose, std::vector<Vector3f> & _bfm_landmarks_PosList, std::vector<Vector3f> & transformed_bfm_landmarks, bool _debug){
+        Eigen::MatrixXf rotation = estimate_pose.block(0, 0, 3, 3);
+        Eigen::VectorXf translation = estimate_pose.block(0, 3, 3, 1);
+        unsigned int num_landmarks = _bfm_landmarks_PosList.size();
+
+        if(_debug){
+            std::cout<<"Rotation"<<std::endl;
+            std::cout<<rotation<<std::endl;
+
+            std::cout<<"translation"<<std::endl;
+            std::cout<<translation<<std::endl;
+        }
+
+        for(auto & vertex : _bfm_landmarks_PosList){
+            Eigen::VectorXf _transformed_point = rotation * vertex + translation;
+            if(_debug){
+                std::cout<<"Transformed point"<<std::endl;
+                std::cout<<_transformed_point<<std::endl;
+            }
+            Vector3f _tp = {_transformed_point.x(), _transformed_point.y(), _transformed_point.z()};
+            transformed_bfm_landmarks.push_back(_transformed_point);
+        }
+
     }
 
 private:

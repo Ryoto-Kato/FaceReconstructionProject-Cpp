@@ -3,13 +3,14 @@ cmake_minimum_required(VERSION 3.6)
 set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE TYPE INTERNAL FORCE)
 
 project(face_reconstruction) # Project name: Base Face Model Manager
+find_package(flann REQUIRED)
+include_directories(${Flann_INCLUDE_DIR})
 
 set(LIBRARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs CACHE PATH "Path to lib folder")
 set(Eigen3_DIR ${LIBRARY_DIR}/Eigen/cmake CACHE PATH "Path to installed Eigen")
 add_subdirectory(${LIBRARY_DIR}/dlib dlib_build)
 
 option(MINF "Use" ON)
-
 # Use pre-compiled libraries on Windows
 if(WIN32)
     if(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -58,7 +59,6 @@ target_compile_features(face_reconstruction PRIVATE cxx_std_17)
 find_package(HDF5 REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(Ceres REQUIRED)
-find_package(flann REQUIRED)
 add_definitions("-D_DISABLE_EXTENDED_ALIGNED_STORAGE")
 
 if (MSVC)
@@ -111,8 +111,7 @@ include_directories(${Boost_INCLUDE_DIRS})
 if(UNIX)
     set(LIBS 
         /usr/lib/x86_64-linux-gnu/libboost_filesystem.so.1.65.1
-        /usr/lib/x86_64-linux-gnu/libboost_system.so.1.65.1
-    )
+        /usr/lib/x86_64-linux-gnu/libboost_system.so.1.65.1)
 endif()
 
 message(STATUS "path to Eiegn: ${Eigen3_DIR}")
@@ -179,7 +178,7 @@ if(GEN_BFM_EXAMPLES)
    target_link_libraries(gen_faces face_reconstruction)
 endif()
 
-OPTION(CERES_EXAMPLE "Ceres optimizer example from exercise 5." ON)
+OPTION(CERES_EXAMPLE "Ceres optimizer example from exercise 5." OFF)
 if(CERES_EXAMPLE)
    add_executable(ceres_example examples/example_ceres_optimizer.cpp)
    target_link_libraries(ceres_example face_reconstruction)
