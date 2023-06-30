@@ -16,7 +16,6 @@ public:
 		for (const auto& vertex : vertices) {
 			m_points.push_back(vertex);
 		}
-
 		// Compute normals (as an average of triangle normals).
 		m_normals = std::vector<Vector3f>(nVertices, Vector3f::Zero());
 		for (size_t i = 0; i < nTriangles; i++) {
@@ -34,6 +33,8 @@ public:
 		for (size_t i = 0; i < nVertices; i++) {
 			m_normals[i].normalize();
 		}
+
+		std::cout<<"finish face point cloud configration"<<std::endl;
 	}
 
 	FacePointCloud(MatrixXf & depthMap, const Matrix3f& depthIntrinsics, const Matrix4f& depthExtrinsics, const unsigned width, const unsigned height, unsigned downsampleFactor, float maxDistance) {
@@ -233,6 +234,72 @@ public:
 		}
 
 	}
+
+
+    static void writeFacePointCloudPly(std::string fn, std::vector<Vector3f> & point_clouds){
+        std::ofstream out;
+        /* Note: In Linux Cpp, we should use std::ios::out as flag, which is not necessary in Windows */
+        out.open(fn, std::ios::out | std::ios::binary);
+        if(!out.is_open())
+        {
+            LOG(ERROR) << "Creation of " << fn << " failed.";
+            return;
+        }
+
+        std::cout<<"Writing face mesh ply ("<<fn<<")"<<"....";
+
+        out << "ply\n";
+        out << "format ascii 1.0\n";
+        out << "comment Made from the 3D Morphable Face Model of the Univeristy of Basel, Switzerland.\n";
+        out << "element vertex " << point_clouds.size() << "\n";
+        out << "property float x\n";
+        out << "property float y\n";
+        out << "property float z\n";
+        out << "end_header\n";
+
+        // unsigned long int cnt = 0;
+        for (Vector3f point : point_clouds)
+        {
+            out<<point.x()<<" "<<point.y()<<" "<<point.z()<<"\n";
+        }
+
+        out.close();
+        
+        std::cout<<"Finish face mesh ply ("<<fn<<")"<<std::endl;
+    }
+
+ 	void writeDepthMapPly(std::string fn, double scale){
+        std::ofstream out;
+        /* Note: In Linux Cpp, we should use std::ios::out as flag, which is not necessary in Windows */
+        out.open(fn, std::ios::out | std::ios::binary);
+        if(!out.is_open())
+        {
+            LOG(ERROR) << "Creation of " << fn << " failed.";
+            return;
+        }
+
+        std::cout<<"Writing face mesh ply ("<<fn<<")"<<"....";
+
+        out << "ply\n";
+        out << "format ascii 1.0\n";
+        out << "comment Made from the 3D Morphable Face Model of the Univeristy of Basel, Switzerland.\n";
+        out << "element vertex " << m_points.size() << "\n";
+        out << "property float x\n";
+        out << "property float y\n";
+        out << "property float z\n";
+        out << "end_header\n";
+
+        // unsigned long int cnt = 0;
+        for (Vector3f point : m_points)
+        {
+            out<<point.x()*scale<<" "<<point.y()*scale<<" "<<point.z()*scale<<"\n";
+        }
+
+        out.close();
+        
+        std::cout<<"Finish face mesh ply ("<<fn<<")"<<std::endl;
+    }
+
 
 private:
 	std::vector<Vector3f> m_points;

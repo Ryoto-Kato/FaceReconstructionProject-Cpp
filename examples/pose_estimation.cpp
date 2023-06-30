@@ -24,7 +24,7 @@ const std::string right_line = "--------";
 #define DEBUG true
 #define USE_POINT_TO_PLANE false
 #define ONLY_SELECTED_LANDMARKS true
-#define ps_ICP false
+#define ps_ICP true
 #define ps_ICP_with_allAvailableLandmarks false
 
 
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 
     std::cout<<left_line<<"Getting landmarks from BFM..."<<right_line<<std::endl;
     //Get landmark vertex position and id mapping individually
-    std::vector<std::pair<int, int>> map_Dlib2BFM_landmark = bfm.getMapDlib2BFM_landmark();
+    std::vector<std::pair<int, int>> map_Dlib2DepthmapBFM_landmark = bfm.getMapDlib2BFM_landmark();
     std::vector<Vector3f> bfm_landmarks_vertexPos = bfm.getLandmarkPos();
     //Get landmarks which containing relevant information within Landmark for each
     std::vector<Landmarks> face_landmarks = bfm.getLandmarks();
@@ -317,11 +317,11 @@ int main(int argc, char *argv[])
     num_ps_landmark = ps_dlib_landmarks_vertexPos.size();
     std::cout<<num_ps_landmark<<std::endl;
     //Write bfm_landmark point cloud
-    bfm.writeLandmarkPly("../output/landmark_bfm.ply", available_bfm_landmarks_vertexPos);
+    FacePointCloud::writeFacePointCloudPly("../output/landmark_bfm.ply", available_bfm_landmarks_vertexPos);
 
     //Write dlib_landmark point cloud
     std::cout<<"Write .ply given backprojected dlib landmarks"<<std::endl;
-    bfm.writeLandmarkPly("../output/landmark_dlib.ply", available_dlib_landmarks_vertexPos);
+    FacePointCloud::writeFacePointCloudPly("../output/landmark_dlib.ply", available_dlib_landmarks_vertexPos);
 
     //get landmark image Mat
     cv::Mat ps_landmark_cvMat = landmarks_extractor.get_landmarkImage(ps_dlib_landmarks, DEBUG);
@@ -358,7 +358,7 @@ int main(int argc, char *argv[])
 
     //Write BFM landmarks point cloud which is transformed only by Procrustes
     std::cout<<"Write .ply given only Procrustes transformed BFM landmarks"<<std::endl;
-    bfm.writeLandmarkPly("../output/transformed_onlyProcrustes_landmark_bfm.ply", transformed_onlyProcrustes_available_bfm_landmarks_vertexPos);
+    FacePointCloud::writeFacePointCloudPly("../output/transformed_onlyProcrustes_landmark_bfm.ply", transformed_onlyProcrustes_available_bfm_landmarks_vertexPos);
     
     /* ICP for pose estimation
     *   Input
@@ -404,6 +404,11 @@ int main(int argc, char *argv[])
     float maxDistance = 0.1f;
     FacePointCloud FPC_depthMap{depth_map, depth_intrinsics, depth_extrinsics, depth_width, depth_height, downsampleFactor, maxDistance};
 
+    /* TODO write point cloud of the depth map
+    *  Above depth map is pixel coordinate x,y (0, 256), and depth
+    *  Need to compute backprojection of each point as we do for detected landmark
+    */
+    FPC_depthMap.writeDepthMapPly("../output/depth_map.ply", 0.001);
     //check if the points are registered as members of the instance
     #ifdef DEBUG
         std::cout<<"FPC_depthMap"<<std::endl;
@@ -445,8 +450,8 @@ int main(int argc, char *argv[])
     bfm.apply_SE3_to_BFMLandmarks(ICP_estimatedPose, transformed_onlyProcrustes_available_bfm_landmarks_vertexPos, transformed_ProcrustesAndICP_bfm_landmarks_vertexPos, DEBUG);
 
     //Write BFM landmarks point cloud which is transformed only by Procrustes
-    std::cout<<"Write .ply given only Procrustes transformed BFM landmarks"<<std::endl;
-    bfm.writeLandmarkPly("../output/transformed_ProcrustesAndICP_bfm_landmarks.ply", transformed_ProcrustesAndICP_bfm_landmarks_vertexPos);
+    std::cout<<"Write .ply given Procrustes/ICP transformed BFM landmarks"<<std::endl;
+    FacePointCloud::writeFacePointCloudPly("../output/transformed_ProcrustesAndICP_bfm_landmarks.ply", transformed_ProcrustesAndICP_bfm_landmarks_vertexPos);
     
     #endif
     /* TODO: Parameter Estimation
@@ -534,6 +539,15 @@ int main(int argc, char *argv[])
         std::cout<<left_line<<right_line<<std::endl;
     #endif
 
+    /* TODO: apply the transformation matrix to the mesh and write mesh 
+    * 	Eigen::Matrix3d m_matR;
+	*   Eigen::Vector3d m_vecT;
+    *   VectorXd getCurrentTransformed() const { return bfm_utils::TransPoints(m_matR, m_vecT, m_vecCurrentShape); }
+	*   VectorXd getCurrentBlendshapeTransformed() const { return bfm_utils::TransPoints(m_matR, m_vecT, m_vecCurrentBlendshape); }
+    * 
+    */
+    // Eigen::Matrix3d m_matR;
+	// Eigen::Vector3d m_vecT;
     //Get average face geometry
     //_withExpression = True; you will get average mesh with random expression, otherwise, with a eutral expression
     bfm.writeAveBFMmesh("../output/average.ply", _withExpression);
