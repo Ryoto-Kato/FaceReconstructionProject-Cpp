@@ -178,6 +178,12 @@ if(GEN_BFM_EXAMPLES)
    target_link_libraries(gen_faces face_reconstruction)
 endif()
 
+OPTION(UTILS_EXAMPLE "How to use entire CMakeProject." ON)
+if(UTILS_EXAMPLE)
+   add_executable(utils_example examples/utils.cpp)
+   target_link_libraries(utils_example face_reconstruction)
+endif()
+
 OPTION(CERES_EXAMPLE "Ceres optimizer example from exercise 5." OFF)
 if(CERES_EXAMPLE)
    add_executable(ceres_example examples/example_ceres_optimizer.cpp)

@@ -46,7 +46,7 @@ public:
     	google::ShutdownGoogleLogging();
     }
     
-    bool init(int argc, char *argv[]) {
+    bool init(int argc, char *argv[], double dFx = 525.0, double dFy = 525.0, double dCx = 319.5f-192.0, double dCy = 239.5f - 74) {
         // logging
         google::InitGoogleLogging(argv[0]); 
         FLAGS_logtostderr = false;
@@ -63,13 +63,8 @@ public:
         po::variables_map vm;
 
         std::string sBfmH5Path, sLandmarkIdxPath;
-        double dFx = 0.0, dFy = 0.0, dCx = 0.0, dCy = 0.0;
         sBfmH5Path = "../data/model2017-1_bfm_nomouth.h5";
         sLandmarkIdxPath = "../data/map_dlib-bfm_rk.anl";
-        dFx = 1744.327628674942;
-        dFy = 1747.838275588676;
-        dCx = 800;
-        dCy = 600;
 
         try
         {
@@ -261,9 +256,9 @@ public:
             l.dlib_id = dlibIdx;
             l.bfm_id = bfmIdx;
 
-            x = float(m_AveShape(bfmIdx*3));
-            y = float(m_AveShape(bfmIdx*3+1));
-            z = float(m_AveShape(bfmIdx*3+2));
+            x = float(m_AveBlendshape(bfmIdx*3));
+            y = float(m_AveBlendshape(bfmIdx*3+1));
+            z = float(m_AveBlendshape(bfmIdx*3+2));
 
             Vector3f _vertex_pos = {x, y, z};
             landmarkPoints.push_back(_vertex_pos);
@@ -305,9 +300,9 @@ public:
             float x, y, z;
             float r, g, b;
             Vertex _v;
-            x = float(m_AveShape(i*3));
-            y = float(m_AveShape(i*3+1));
-            z = float(m_AveShape(i*3+2));
+            x = float(m_AveBlendshape(i*3));
+            y = float(m_AveBlendshape(i*3+1));
+            z = float(m_AveBlendshape(i*3+2));
 
             _v.position.x() = x;
             _v.position.y() = y;
@@ -383,6 +378,10 @@ public:
             transformed_bfm_landmarks.push_back(_transformed_point);
         }
 
+    }
+
+     BfmManager * getBfmmanager(){
+        return &BFM_Manager;
     }
 
 private:
