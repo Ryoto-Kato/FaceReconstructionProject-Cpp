@@ -322,7 +322,7 @@ int main(int argc, char *argv[])
     }
 
     //Check if the number of detected ladnmark and BFM registred landmarks are identical
-    assert(ps_dlib_landmarks_vertexPos.size() == ps_bfm_landmarks_vertexPos.size() == ps_bfm_landmarks.size() == ps_dlib_landmarks.size() && "Number of landmarks extracted form image must be equal to the ones form BFM");
+    assert(ps_dlib_landmarks_vertexPos.size() == ps_bfm_landmarks_vertexPos.size() == ps_dlib_landmarks.size() && "Number of landmarks extracted form image must be equal to the ones form BFM");
 
     unsigned int num_ps_landmark = 0;
     num_ps_landmark = ps_dlib_landmarks_vertexPos.size();
