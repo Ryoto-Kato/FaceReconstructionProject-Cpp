@@ -464,13 +464,122 @@ int main(int argc, char *argv[])
     #endif
 
     //TODO: update pose
-
-    /* TODO: Parameter Estimation
-    
-    
+    /*
+    * what we need to update after pose estimation
+    * - BFM component
+    *   - [ ] [Parameter_set] SHAPE and EXPRESSION
+    *   - [ ] Check the depth map is correctly visualized
+    *   - [x] bfm_landmark position 
+    *       => std::vector<Vector3f>transformed_ProcrustesAndICP_bfm_landmarks_vertexPos
+    *  
     */
 
-    //Set parameters
+    //Obtain parameter set
+    Parameter_set SHAPE = bfm.getParameter_set_SHAPE();
+    Parameter_set TEX = bfm.getParameter_set_TEX();
+    Parameter_set EXP = bfm.getParameter_set_EXP();
+
+    bfm.update_Pose_ParameterSet(SHAPE, ICP_estimatedPose, DEBUG);
+    bfm.update_Pose_ParameterSet(EXP, ICP_estimatedPose, DEBUG);
+
+
+   /*
+       [struct Parameter_set] BFM components  
+            [Eigen::MatrixXd] Principal Component (SHAPE, TEXTURE, EXPRESSION)
+            [Eigen::VectorXd] Mean (SHAPE, TEXTURE, EXPRESSION)
+            [Eigen::VectorXd] Variance (SHAPE, TEXTURE, EXPRESSION)
+        [Current Face mesh]
+            [std::vector<Vector3f>] Current_blendshape_vertex_position
+            [std::vector<Vector3f>] Currennt_blendhspae_vertex_color
+        [std::vector<Eigen::Vector3f>] Transformed landmark position list
+        [Landmarks (defined in BFM.h)] Back-projected detected dlib Facial Landmark
+            int Dlib id
+            int BFM vertex id
+            Vector4f position
+            Vector4uc color 
+        [Data class] Estimated pose (rotation and translation)
+        [MatrixRGB] RGB image
+        [Matrixi] RGBD image 
+
+   
+   */
+
+
+    /* TODO: Parameter Estimation
+    *   Energy term
+    *       E(p) = E_dense(P) + E_sparse(P) + E_reg(P)
+    *       
+    *       <Dense term>
+    *       E_dense(p) = E_geom(P) + E_color(P)
+    *       
+    *       E_geom(p) = E_point(P) + E_plane(P)
+    *           //E_point;
+    *                 Source (BFM face mesh)
+    *                   - Vertex position
+    *                       - [Parameter_set] SHAPE and EXPRESSION (to compute current blendshape)
+    *                       - [std::vector<Vector3f>] Current_blendshape_vertex_position (to store current blendshape face mesh vertex position)
+    *                 Target (RGBD)
+    *                   - Depth Map
+    *                       - [MatrixXi] RGBD image
+    *                   - Depth camera intrinsic (for back-projection)
+    *                       - [Matrix3f] depth_intrinsic 
+    *           //E_plane;
+    *                 Source (BFM face mesh)
+    *                   - Vertex position
+    *                       - [Parameter_set] SHAPE and EXPRESSION (to compupt current blendshape)
+    *                       - [Eigen::MatrixXf] Current_blendshape_vertex_position
+    *                 Target (RGBD)
+    *                   - Depth Map with normal
+    *                       - [MatrixXi] RGBD image
+    *                       - [FacePointCloud] (to get normal at each)
+    *                             - std::vector<Vector3f> vertices_position = getPoints();
+    *                             - std::vector<Vector3f> vertices_normals = getNormals();
+    *                   - Depth camera intrinsic (for back projection)
+    *                       - [Matrix3f] depth_intrinsic
+    *       E_color(P)
+    *             Source (BFM face model)
+    *               - Vertex color (Texture in BFM)
+    *                   - [Parameter_set] TEXTURE
+    *                   - [std::vector<Vector3f>] Current_blendshape_vertex_position
+    *             Target (RGBD)
+    *               - RGB map
+    *                   - [MatrixRGB] RGBimage
+    *               - RGB camera intrinsic (projection of BFM model vertices)
+    *                   - [MatrixXd] rgb_intrinsic
+    *       <Sparse Term>
+    *       E_sparse(P)
+    *           Source (BFM face Mesh)
+    *              - BFM Landmarks vertex position
+    *                   - [std::vector<Vector3f>] transformed_ProcrustesAndICP_bfm_landmarks_vertexPos
+    *              - RGB camera intrinsic (for projection)
+    *                   - [MatrixXf] rgb_intrinsic
+    *           Target (RGBD)
+    *              - pixel coordinate of Dlib detected landmarks
+    *                   - [std::vector<Vector3f>] dlib_landmarks
+    *       <Regularization>
+    *       E_reg(P)
+    *           - BFM shape 
+    *               - coefficients,
+    *                   - [std::vector<double>] coef_shape
+    *               - standard deviation
+    *                   - [Parameter_set] SHAPE
+    *                       - [Eigen::VectorXd] SHAPE.variance
+    *           - BFM texture
+    *               - coefficients,
+    *                   - [std::vector<double>] coef_texture
+    *               - standard deviation
+    *                   - [Parameter_set] TEX
+    *                       - [Eigen::VectorXd] TEX.variance
+    *           - BFM expressions
+    *               - coefficients,
+    *                   - [std::vector<double>] coef_expression
+    *               - standard deviation
+    *                   - [Parameter_set] EXP
+    *                       - [Eigen::VectorXd] EXP.variance
+    *           
+    */
+
+    //Set parameters (after parameter estimation)
     // Coefficients for shape (199dim)
     std::vector<double> _coef_shape = {1.35982, 4.58154, -0.144497, -5.60332, 0.0526005, 3.72205, -4.73335, 2.58471, 0.199888, 1.13355, -1.71451, 2.48621, -2.35147, -2.73202, -3.08397, -0.461363, -0.648689, 2.35612, 1.89773, -5.25898, 2.43594, -0.858787, -1.251, 1.14865, 4.48174, -0.543897, 2.25787, -3.51808, 3.35158, 0.757921, -3.79997, -0.192129, -1.22736, 1.57217, -1.46639, -5.86647, 1.74459, -3.33895, -0.554571, -0.914844, -0.213381, 5.30319, -0.455774, -2.91975, 6.91567, -3.33744, -1.96792, -0.618775, 1.08693, 4.48546, 3.61086, 2.27854, -2.39703, -1.70969, -0.559681, -0.332884, -1.94077, -0.131853, 2.4651, -0.795658, -1.92196, 0.227778, 7.95127, 1.32237, 7.73176, 1.94919, -0.972522, -2.42813, 3.07547, 1.78916, 1.73506, -3.17724, 3.47924, 0.504941, 5.09847, 0.965697, 0.156934, 3.10021, -5.67475, 0.186958, 2.0241, 2.60911, -0.00164837, 3.56536, 2.95706, -0.949758, 1.34018, -0.917555, -2.89864, -4.10212, -0.0647675, -0.0760473, -1.09079, 4.78679, -1.00966, -0.951466, -1.12815, -1.81088, 1.14092, -0.634901, 4.19393, -0.154778, -0.24172, -2.68672, -0.261226, 1.37849, 2.96354, -0.954373, -2.06333, -1.49177, -2.86876, -3.49933, 2.10861, -1.83566, -0.651453, -1.04734, 5.02986, 2.2641, -3.05282, 1.78832, 4.33105, 2.99618, -5.23611, 3.34163, 0.528679, -0.570485, 0.569117, 1.5007, 5.01634, -0.0640699, 1.54914, 3.06658, -0.928706, 0.749098, -1.33337, 0.680119, -3.28307, 5.44081, -3.97985, 1.51229, -1.74412, 0.584966, -5.18306, 0.670043, -0.0892343, 1.27419, 0.364499, -3.59402, -2.84663, -1.0695, -0.672312, 0.780548, -2.09034, -1.32798, 1.78423, -0.903917, -4.78654, -5.35615, 1.20542, 1.62399, 2.41616, -3.0187, 1.12814, -0.75492, 0.81099, -2.48641, -1.11013, 6.17187, -2.24184, -2.07369, 2.678, -1.39893, -4.37047, 1.63268, -1.67336, -3.05079, -6.13043, 0.60356, -0.57444, 1.38333, -5.78597, -1.77023, 3.77638, -0.127266, -0.0265435, -6.00795, 1.44405, 0.656326, -2.53438, -2.87057, 2.14332, -1.57009, 4.84567, 1.66648, -1.80637, 1.53991, 3.13979, -7.00785, 1.84581};
     // Coefficient for texture (199dim)
@@ -481,11 +590,6 @@ int main(int argc, char *argv[])
     //set coefficients
     bfm.setCoefs(_coef_shape, _coef_tex, _coef_exp);
 
-    //Obtain parameter set
-    Parameter_set SHAPE = bfm.getParameter_set_SHAPE();
-    Parameter_set TEX = bfm.getParameter_set_TEX();
-    Parameter_set EXP = bfm.getParameter_set_EXP();
-
     /* TODO: Write resulting face mesh
     
     
@@ -495,6 +599,8 @@ int main(int argc, char *argv[])
         std::cout<<left_line<<"BFM Parameters and Components"<<right_line<<std::endl;
         // Printing all components is too expensive to print out, hence comment out now.
 
+        std::cout<<"Number of vertices: "<<SHAPE.num_vertices<<std::endl;
+        
         std::cout<<left_line<<SHAPE.name<<right_line<<std::endl;
         std::cout<<SHAPE.name<<" MEAN, vector shape ="<<SHAPE.mean.rows()<<std::endl;
         // std::cout<<SHAPE.mean<<std::endl;

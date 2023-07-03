@@ -878,4 +878,3 @@ void BfmManager::GetExpComponents(VectorXd & vec_Mu_Exp, VectorXd & vec_Ev_Exp, 
 	mat_Pc_Exp = BfmManager::get_ExprPc();
 }
 
-

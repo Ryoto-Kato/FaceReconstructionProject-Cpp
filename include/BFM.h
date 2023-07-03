@@ -33,6 +33,7 @@ struct Parameter_set{
     Eigen::VectorXd mean;
     Eigen::VectorXd variance;
     Eigen::MatrixXd pc;
+    unsigned int num_vertices;
     std::vector<double> parameters;
 
 };
@@ -86,6 +87,8 @@ public:
         std::array<double, N_INT_PARAMS> aIntParams = { dFx, dFy, dCx, dCy };
         std::unique_ptr<BfmManager> pBfmManager(new BfmManager(sBfmH5Path, aIntParams, sLandmarkIdxPath));
         BFM_Manager = *pBfmManager;
+        num_vertices = BFM_Manager.getNVertices();
+        num_triangles = BFM_Manager.getNFaces();
         //SimpleMesh averageFace is created here
         //Developed wrapper by using the function in the BfmManager
 
@@ -99,8 +102,9 @@ public:
         BFM_Manager.GetTexComponents(TEX.mean, TEX.variance, TEX.pc);
         BFM_Manager.GetExpComponents(EXP.mean, EXP.variance, EXP.pc);
 
-        num_vertices = BFM_Manager.getNVertices();
-        num_triangles = BFM_Manager.getNFaces();
+        SHAPE.num_vertices = num_vertices;
+        TEX.num_vertices = num_vertices;
+        EXP.num_vertices = num_vertices;
 
         //get triagle lists
         getTriangleList();
@@ -353,6 +357,32 @@ public:
 
     inline Parameter_set getParameter_set_EXP(){
         return EXP;
+    }
+
+    void update_Pose_ParameterSet(Parameter_set & ps, Eigen::Matrix4f SE3, bool _debug){
+        if(ps.name == "Texture"){
+            std::cout<<"ERROR: Parameter set should be SHAPE or EXPRESSION"<<std::endl;
+        }else{
+            std::cout<<"Update parameter "<<ps.name<<"....";
+        }
+        Eigen::VectorXd means = ps.mean;
+        unsigned int num_vertices = ps.num_vertices;
+
+        for(unsigned int i = 0; i<num_vertices; i++){
+            Eigen::Vector4f _point = {(float)means(3*i), (float)means(3*i+1), (float)means(3*i+2), 1.0};
+            if(_debug){
+                std::cout<<"Before: "<<_point.transpose()<<std::endl;
+            }
+            Eigen::Vector4f _transformed_point = SE3 *_point;
+            means(3*i) = _transformed_point.x(); 
+            means(3*i + 1) = _transformed_point.y(); 
+            means(3*i + 2) = _transformed_point.z(); 
+            if(_debug){
+                std::cout<<"After: "<<_transformed_point.transpose()<<std::endl;
+            }
+        }
+
+        std::cout<<"done"<<std::endl;
     }
 
     void apply_SE3_to_BFMLandmarks(Eigen::Matrix4f & estimate_pose, std::vector<Vector3f> & _bfm_landmarks_PosList, std::vector<Vector3f> & transformed_bfm_landmarks, bool _debug){
