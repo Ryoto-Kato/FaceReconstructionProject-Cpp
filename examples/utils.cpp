@@ -606,7 +606,6 @@ int main(int argc, char *argv[])
     #ifdef DEBUG
         std::cout<<left_line<<"BFM Parameters and Components"<<right_line<<std::endl;
         // Printing all components is too expensive to print out, hence comment out now.
-
         std::cout<<"Number of vertices: "<<SHAPE.num_vertices<<std::endl;
         
         std::cout<<left_line<<SHAPE.name<<right_line<<std::endl;
