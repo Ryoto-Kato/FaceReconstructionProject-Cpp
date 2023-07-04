@@ -385,6 +385,11 @@ public:
         std::cout<<"done"<<std::endl;
     }
 
+    void updatePose_bfmManager(Eigen::Matrix4f & SE3){
+        BFM_Manager.update_ShapeMu(SE3);
+        BFM_Manager.update_ExprMu(SE3);
+    }
+
     void apply_SE3_to_BFMLandmarks(Eigen::Matrix4f & estimate_pose, std::vector<Vector3f> & _bfm_landmarks_PosList, std::vector<Vector3f> & transformed_bfm_landmarks, bool _debug){
         Eigen::MatrixXf rotation = estimate_pose.block(0, 0, 3, 3);
         Eigen::VectorXf translation = estimate_pose.block(0, 3, 3, 1);

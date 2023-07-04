@@ -381,6 +381,28 @@ public:
 	inline const VectorXd &get_ExprMu() const {return m_vecExprMu;}
 	inline const VectorXd &get_ExprEv() const {return m_vecExprEv;}
 	inline const MatrixXd &get_ExprPc() const {return m_matExprPc;}
+
+	void update_ShapeMu(Eigen::Matrix4f & SE3){
+		unsigned int num_vertex = getNVertices();
+		for(unsigned int i = 0; i < num_vertex; i++){
+			Eigen::Vector4f _point = {(float)m_vecShapeMu(3*i), (float)m_vecShapeMu(3*i+1), (float)m_vecShapeMu(3*i+2), 1.f};
+			Eigen::Vector4f _transformed_point = SE3 * _point; 
+			m_vecShapeMu(3*i) = (double)_transformed_point.x();
+			m_vecShapeMu(3*i+1) = (double)_transformed_point.y();
+			m_vecShapeMu(3*i+2) = (double)_transformed_point.z();
+		}
+	}
+
+	void update_ExprMu(Eigen::Matrix4f & SE3){
+		unsigned int num_vertex = getNVertices();
+		for(unsigned int i = 0; i < num_vertex; i++){
+			Eigen::Vector4f _point = {(float)m_vecExprMu(3*i), (float)m_vecExprMu(3*i+1), (float)m_vecExprMu(3*i+2), 1.f};
+			Eigen::Vector4f _transformed_point = SE3 * _point; 
+			m_vecExprMu(3*i) = _transformed_point.x();
+			m_vecExprMu(3*i+1) = _transformed_point.y();
+			m_vecExprMu(3*i+2) = _transformed_point.z();
+		}
+	}
 /*************************************************************************************************************/
 /************************************** Print Function (for Debug) *******************************************/
 /*************************************************************************************************************/

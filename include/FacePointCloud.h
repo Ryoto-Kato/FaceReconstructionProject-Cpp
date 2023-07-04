@@ -115,6 +115,18 @@ public:
 			normalsTmp[(width - 1) + v * width] = Vector3f(MINF, MINF, MINF);
 		}
 
+		// set the normal to MatrixNormalMap
+
+		MatrixNormalMap _normalMap(height, width);
+
+		for(unsigned int v = 0; v < height; v++){
+			for(unsigned int u = 0; u < width; u++){
+				_normalMap(v, u) = normalsTmp[v*width+u];
+			}
+		}
+
+		setNormalMap(_normalMap);
+
 		// We filter out measurements where either point or normal is invalid.
 		const unsigned nPoints = pointsTmp.size();
 		m_points.reserve(std::floor(float(nPoints) / downsampleFactor));
@@ -235,6 +247,14 @@ public:
 
 	}
 
+	MatrixNormalMap getNormalMap(){
+		return NormalMap;
+	}
+
+	void setNormalMap(MatrixNormalMap & _normalMap){
+		NormalMap = _normalMap;
+	}
+
 
     static void writeFacePointCloudPly(std::string fn, std::vector<Vector3f> & point_clouds){
         std::ofstream out;
@@ -292,7 +312,7 @@ public:
         // unsigned long int cnt = 0;
         for (Vector3f point : m_points)
         {
-            out<<point.x()*scale<<" "<<point.y()*scale<<" "<<point.z()*scale<<"\n";
+            out<<point.x()<<" "<<point.y()<<" "<<point.z()*scale<<"\n";
         }
 
         out.close();
@@ -304,5 +324,5 @@ public:
 private:
 	std::vector<Vector3f> m_points;
 	std::vector<Vector3f> m_normals;
-
+	MatrixNormalMap NormalMap;
 };

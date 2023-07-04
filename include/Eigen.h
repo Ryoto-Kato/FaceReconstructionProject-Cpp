@@ -37,6 +37,7 @@ typedef Eigen::Matrix<unsigned char, 4, 1> Vector4uc;
 typedef Eigen::Matrix<unsigned char, 3, 1> Vector3uc;
 typedef Eigen::Matrix<Vector3uc, Eigen::Dynamic, Eigen::Dynamic> MatrixRGB;
 typedef Eigen::Matrix<Vector4uc, Eigen::Dynamic, Eigen::Dynamic> MatrixRGBA;
+typedef Eigen::Matrix<Eigen::Vector3f, Eigen::Dynamic, Eigen::Dynamic> MatrixNormalMap;
 
 
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Eigen::Vector2f)
@@ -46,6 +47,7 @@ EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Vector4uc)
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Vector3uc)
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(MatrixRGB)
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(MatrixRGBA)
+EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(MatrixNormalMap)
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Eigen::VectorXf)
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Eigen::Matrix4f)
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Eigen::MatrixXf)

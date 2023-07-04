@@ -27,6 +27,13 @@ const std::string right_line = "--------";
 #define USE_POINT_TO_PLANE true
 
 
+/* TODO: function to get ply or off file to show DEPTH MAP
+*
+*/
+
+//
+
+
 int main(int argc, char *argv[])
 {
     //init BFM
@@ -46,6 +53,18 @@ int main(int argc, char *argv[])
     //Get landmarks which containing relevant information within Landmark for each
     std::vector<Landmarks> face_landmarks = bfm.getLandmarks();
     unsigned int original_num_landmarks = bfm.getNumLandmarks();
+
+    //Obtain parameter set
+    Parameter_set SHAPE = bfm.getParameter_set_SHAPE();
+    Parameter_set TEX = bfm.getParameter_set_TEX();
+    Parameter_set EXP = bfm.getParameter_set_EXP();
+
+    bool _withExpression = false;
+
+    //Get average face geometry
+    //_withExpression = True; you will get average mesh with random expression, otherwise, with a eutral expression
+    bfm.writeAveBFMmesh("../output/average.ply", _withExpression);
+
     
     #ifdef DEBUG
         // check indivisually obtained landmark pair and vertex positions
@@ -349,15 +368,6 @@ int main(int argc, char *argv[])
     std::vector<Vector3i> ps_dlib_landmark_triangleIdLists = landmarks_extractor.get_triList_landmarks(ps_landmark_cvMat, ps_dlib_landmarks, DEBUG);
     std::vector<Vector3i> ps_bfm_landmark_triangleIdLists = ps_dlib_landmark_triangleIdLists;
 
-    /* TODO: Check if the procrustes is implemented correctly
-    Pose Estimation (Procrustes).... 
-    * input
-    *   Source point
-    *       std::vector<Vector3f> dlib_landmarks_vertexPos;
-    *   Target point
-    *       std::vector<Vector3f> bfm_landmarks_vertexPos
-    */
-
     // Create new instance for ProcrustesAligner
     ProcrustesAligner aligner;
     // Get SE(3)
@@ -374,12 +384,21 @@ int main(int argc, char *argv[])
     bfm.apply_SE3_to_BFMLandmarks(Procrustes_estimatedPose, available_bfm_landmarks_vertexPos, transformed_onlyProcrustes_available_bfm_landmarks_vertexPos, DEBUG);
     bfm.apply_SE3_to_BFMLandmarks(Procrustes_estimatedPose, ps_bfm_landmarks_vertexPos, transformed_ps_bfm_landmarks_vertexPos, DEBUG);
 
+    /* TODO: Update bfm model mean_shape and mean_expression POSE accordingly
+    * To get correct pose face mesh by giving parameters
+    */
+
+    //update the mean of vertex position in shape and expression in bfm_manager_first
+    bfm.updatePose_bfmManager(Procrustes_estimatedPose);
+
+    //update the parameter set as well
+    bfm.update_Pose_ParameterSet(SHAPE, Procrustes_estimatedPose, DEBUG);
+    bfm.update_Pose_ParameterSet(EXP, Procrustes_estimatedPose, DEBUG);
+
     //Write BFM landmarks point cloud which is transformed only by Procrustes
     std::cout<<"Write .ply given only Procrustes transformed BFM landmarks"<<std::endl;
     FacePointCloud::writeFacePointCloudPly("../output/transformed_onlyProcrustes_landmark_bfm.ply", transformed_onlyProcrustes_available_bfm_landmarks_vertexPos);
     
-    //TODO apply rotation and translation to the BFM model
-
     /* ICP for pose estimation
     *   Input
     *       BFM landmarks
@@ -411,13 +430,26 @@ int main(int argc, char *argv[])
         FPC_bfm_landmark.print_points_and_normals();
     #endif
 
-
-    bool _withExpression = false;
-
     // Create FacePointCloud instance for Dense ICP between Depthmap
     unsigned int downsampleFactor = 1;
     float maxDistance = 0.1f;
     FacePointCloud FPC_depthMap{depth_map, depth_intrinsics, depth_extrinsics, depth_width, depth_height, downsampleFactor, maxDistance};
+
+    /*
+    * MatrixNormalMap(v, u) (v in vertical, u in horizontal)
+    * Each entry has respective Vector3f representing normal vector
+    * 
+    * If we do not have valid normal vector ==> NormalMap(v, u) == Vector3f(MINF, MINF, MINF);
+    */
+    MatrixNormalMap normalmap = FPC_depthMap.getNormalMap();
+
+    #ifdef DEBUG
+		for(unsigned int v = 0; v < normalmap.rows(); v++){
+			for(unsigned int u = 0; u < normalmap.cols(); u++){
+				std::cout<<"RGBD_Map("<<v<<","<<u<<")"<<": "<<normalmap(v, u).transpose()<<std::endl;
+			}
+		}
+    #endif
 
     /* TODO write point cloud of the depth map
     *  Above depth map is pixel coordinate x,y (0, 256), and depth
@@ -433,7 +465,6 @@ int main(int argc, char *argv[])
     /*TODO: ICP for Pose estimation 
     * Point to point and point to plane
     */
-
 	// Setup the optimizer.
 	FPC_CeresICPOptimizer* landmark_optimizer = nullptr;
 
@@ -470,46 +501,16 @@ int main(int argc, char *argv[])
     
     #endif
 
-    //TODO: update pose
-    /*
-    * what we need to update after pose estimation
-    * - BFM component
-    *   - [ ] [Parameter_set] SHAPE and EXPRESSION
-    *   - [ ] Check the depth map is correctly visualized
-    *   - [x] bfm_landmark position 
-    *       => std::vector<Vector3f>transformed_ProcrustesAndICP_bfm_landmarks_vertexPos
-    *  
+    /* TODO: Update bfm model mean_shape and mean_expression POSE accordingly
+    * To get correct pose face mesh by giving parameters
     */
 
-    //Obtain parameter set
-    Parameter_set SHAPE = bfm.getParameter_set_SHAPE();
-    Parameter_set TEX = bfm.getParameter_set_TEX();
-    Parameter_set EXP = bfm.getParameter_set_EXP();
+    //update the mean of vertex position in shape and expression in bfm_manager_first
+    bfm.updatePose_bfmManager(ICP_estimatedPose);
 
+    //update the parameter set as well
     bfm.update_Pose_ParameterSet(SHAPE, ICP_estimatedPose, DEBUG);
     bfm.update_Pose_ParameterSet(EXP, ICP_estimatedPose, DEBUG);
-
-
-   /*
-       [struct Parameter_set] BFM components  
-            [Eigen::MatrixXd] Principal Component (SHAPE, TEXTURE, EXPRESSION)
-            [Eigen::VectorXd] Mean (SHAPE, TEXTURE, EXPRESSION)
-            [Eigen::VectorXd] Variance (SHAPE, TEXTURE, EXPRESSION)
-        [Current Face mesh]
-            [std::vector<Vector3f>] Current_blendshape_vertex_position
-            [std::vector<Vector3f>] Currennt_blendhspae_vertex_color
-        [std::vector<Eigen::Vector3f>] Transformed landmark position list
-        [Landmarks (defined in BFM.h)] Back-projected detected dlib Facial Landmark
-            int Dlib id
-            int BFM vertex id
-            Vector4f position
-            Vector4uc color 
-        [Data class] Estimated pose (rotation and translation)
-        [MatrixRGB] RGB image
-        [Matrixi] RGBD image 
-
-   
-   */
 
 
     /* TODO: Parameter Estimation
@@ -662,19 +663,6 @@ int main(int argc, char *argv[])
         // std::cout<<std::endl;
         std::cout<<left_line<<right_line<<std::endl;
     #endif
-
-    /* TODO: apply the transformation matrix to the mesh and write mesh 
-    * 	Eigen::Matrix3d m_matR;
-	*   Eigen::Vector3d m_vecT;
-    *   VectorXd getCurrentTransformed() const { return bfm_utils::TransPoints(m_matR, m_vecT, m_vecCurrentShape); }
-	*   VectorXd getCurrentBlendshapeTransformed() const { return bfm_utils::TransPoints(m_matR, m_vecT, m_vecCurrentBlendshape); }
-    * 
-    */
-    // Eigen::Matrix3d m_matR;
-	// Eigen::Vector3d m_vecT;
-    //Get average face geometry
-    //_withExpression = True; you will get average mesh with random expression, otherwise, with a eutral expression
-    bfm.writeAveBFMmesh("../output/average.ply", _withExpression);
 
     //Get face mesh given parameters
     //_withExpression = True; you will get average mesh with random expression, otherwise, with a eutral expression
