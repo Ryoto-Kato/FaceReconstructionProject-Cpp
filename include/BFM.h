@@ -13,6 +13,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
+#include <tuple>
+
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
 
@@ -206,16 +208,20 @@ public:
         BFM_TriangleList = BFM_Manager.getTriangleList();
     }
 
-    void writeBFMmesh(std::string f_name_ply, std::vector<double> & _coef_shape, std::vector<double> & _coef_tex, std::vector<double> & _coef_exp, bool _withExp){
+    std::tuple<std::vector<Eigen::Vector3f>, std::vector<Eigen::Vector3f>, std::vector<Vector3i>> writeBFMmesh(std::string f_name_ply, std::vector<double> & _coef_shape, std::vector<double> & _coef_tex, std::vector<double> & _coef_exp, bool _withExp){
         //write mesh using pBfManager->GenBFM()
         setCoefs(_coef_shape, _coef_tex, _coef_exp);
-        BFM_Manager.GetBFM(f_name_ply, Coefs_shape, Coefs_tex, Coefs_exp, false, _withExp);
+        std::tuple<std::vector<Eigen::Vector3f>, std::vector<Eigen::Vector3f>, std::vector<Vector3i>> _result_mesh_components;
+        _result_mesh_components = BFM_Manager.GetBFM(f_name_ply, Coefs_shape, Coefs_tex, Coefs_exp, false, _withExp);
+        return _result_mesh_components;
     }
 
-    void writeAveBFMmesh(std::string f_name_ply, bool _withExp){
+    std::tuple<std::vector<Eigen::Vector3f>, std::vector<Eigen::Vector3f>, std::vector<Vector3i>> writeAveBFMmesh(std::string f_name_ply, bool _withExp){
         //write mesh using pBfManager->GenBFM()
         ResetCoefs();
-        BFM_Manager.GetBFM(f_name_ply, Coefs_shape, Coefs_tex, Coefs_exp, true, _withExp);
+        std::tuple<std::vector<Eigen::Vector3f>, std::vector<Eigen::Vector3f>, std::vector<Vector3i>> _result_mesh_components;
+        _result_mesh_components = BFM_Manager.GetBFM(f_name_ply, Coefs_shape, Coefs_tex, Coefs_exp, true, _withExp);
+        return _result_mesh_components;
     }
 
     inline void setCoefs(std::vector<double> & _coef_shape, std::vector<double> & _coef_tex, std::vector<double> & _coef_exp){

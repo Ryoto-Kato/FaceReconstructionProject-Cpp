@@ -8,6 +8,7 @@
 #include <fstream>
 #include "Eigen.h"
 #include "FacialLandmarkExtractor.h"
+#include <tuple>
 
 //Procrustes for pose estimation
 #include "ProcrustesAligner.h"
@@ -63,8 +64,25 @@ int main(int argc, char *argv[])
 
     //Get average face geometry
     //_withExpression = True; you will get average mesh with random expression, otherwise, with a eutral expression
-    bfm.writeAveBFMmesh("../output/average.ply", _withExpression);
 
+    std::vector<Eigen::Vector3f> averageBFM_vertex_pos;
+    std::vector<Eigen::Vector3f> averageBFM_vertex_rgb;
+    std::vector<Vector3i> averageBFM_triangle_list;
+
+    std::tie(averageBFM_vertex_pos, averageBFM_vertex_rgb, averageBFM_triangle_list) = bfm.writeAveBFMmesh("../output/average.ply", _withExpression);
+
+    std::cout<<"Result of mesh"<<std::endl;
+    
+    std::cout<<left_line<<"Number of vertex: "<<averageBFM_vertex_pos.size()<<right_line<<std::endl;
+    for(unsigned int i = 0; i < averageBFM_vertex_pos.size(); i++){
+        std::cout<<i<<"th position: ("<<averageBFM_vertex_pos[i].x()<<", "<<averageBFM_vertex_pos[i].y()<<", "<<averageBFM_vertex_pos[i].z()<<")"<<std::endl;
+        std::cout<<i<<"th color   : ("<<averageBFM_vertex_rgb[i].x()<<", "<<averageBFM_vertex_rgb[i].y()<<", "<<averageBFM_vertex_rgb[i].z()<<")"<<std::endl;
+    }
+
+    std::cout<<left_line<<"Number of triangle face: "<<averageBFM_triangle_list.size()<<right_line<<std::endl;
+    for(unsigned int i = 0; i < averageBFM_triangle_list.size(); i++){
+        std::cout<<i<<"th triangle: ("<<averageBFM_triangle_list[i].x()<<", "<<averageBFM_triangle_list[i].y()<<", "<<averageBFM_triangle_list[i].z()<<")"<<std::endl;
+    }
     
     #ifdef DEBUG
         // check indivisually obtained landmark pair and vertex positions
@@ -665,7 +683,25 @@ int main(int argc, char *argv[])
 
     //Get face mesh given parameters
     //_withExpression = True; you will get average mesh with random expression, otherwise, with a eutral expression
-    bfm.writeBFMmesh("../output/gen_mesh_test1.ply", _coef_shape, _coef_tex, _coef_exp ,_withExpression);
+    
+    std::vector<Eigen::Vector3f> result_vertex_pos;
+    std::vector<Eigen::Vector3f> result_vertex_rgb;
+    std::vector<Vector3i> result_triangle_list;
+
+    std::tie(result_vertex_pos, result_vertex_rgb, result_triangle_list) = bfm.writeBFMmesh("../output/gen_mesh_test1.ply", _coef_shape, _coef_tex, _coef_exp ,_withExpression);
+
+    std::cout<<"Result of mesh"<<std::endl;
+    
+    std::cout<<left_line<<"Number of vertex: "<<result_vertex_pos.size()<<right_line<<std::endl;
+    for(unsigned int i = 0; i < result_vertex_pos.size(); i++){
+        std::cout<<i<<"th position: ("<<result_vertex_pos[i].x()<<", "<<result_vertex_pos[i].y()<<", "<<result_vertex_pos[i].z()<<")"<<std::endl;
+        std::cout<<i<<"th color   : ("<<result_vertex_rgb[i].x()<<", "<<result_vertex_rgb[i].y()<<", "<<result_vertex_rgb[i].z()<<")"<<std::endl;
+    }
+
+    std::cout<<left_line<<"Number of triangle face: "<<result_triangle_list.size()<<right_line<<std::endl;
+    for(unsigned int i = 0; i < result_triangle_list.size(); i++){
+        std::cout<<i<<"th triangle: ("<<result_triangle_list[i].x()<<", "<<result_triangle_list[i].y()<<", "<<result_triangle_list[i].z()<<")"<<std::endl;
+    }
 
 	delete landmark_optimizer;
 
