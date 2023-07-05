@@ -62,8 +62,8 @@ int main(int argc, char *argv[])
 
     bool _withExpression = false;
 
-    //Get average face geometry
-    //_withExpression = True; you will get average mesh with random expression, otherwise, with a eutral expression
+    //Get average face geometry (.ply) and its components
+    //_withExpression = True; you will get average mesh with random expression, otherwise, with a neutral expression
 
     std::vector<Eigen::Vector3f> averageBFM_vertex_pos;
     std::vector<Eigen::Vector3f> averageBFM_vertex_rgb;
@@ -681,8 +681,8 @@ int main(int argc, char *argv[])
         std::cout<<left_line<<right_line<<std::endl;
     #endif
 
-    //Get face mesh given parameters
-    //_withExpression = True; you will get average mesh with random expression, otherwise, with a eutral expression
+    //Get face mesh (.ply) and its components given parameters
+    //_withExpression = True; you will get average mesh with random expression, otherwise, with a neutral expression
     
     std::vector<Eigen::Vector3f> result_vertex_pos;
     std::vector<Eigen::Vector3f> result_vertex_rgb;
