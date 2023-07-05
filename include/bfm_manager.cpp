@@ -1,4 +1,6 @@
 ﻿#include "bfm_manager.h"
+#include <tuple>
+#include "Eigen.h"
 
 
 BfmManager::BfmManager(
@@ -747,7 +749,7 @@ void BfmManager::clrExtParams()
 	this->genFace();
 }
 
-void BfmManager::GetBFM(std::string f_name_ply, std::vector<double> & Coef_shape, std::vector<double> & Coef_Tex, std::vector<double> & Coef_exp,  bool average, bool withExp){
+std::tuple<std::vector<Eigen::Vector3f>, std::vector<Eigen::Vector3f>, std::vector<Vector3i>> BfmManager::GetBFM(std::string f_name_ply, std::vector<double> & Coef_shape, std::vector<double> & Coef_Tex, std::vector<double> & Coef_exp,  bool average, bool withExp){
 	
 	if(average){
 		double dScale[3]= {sqrt(m_vecShapeEv.minCoeff()), sqrt(m_vecTexEv.minCoeff()), sqrt(m_vecExprEv.minCoeff())};
@@ -790,10 +792,16 @@ void BfmManager::GetBFM(std::string f_name_ply, std::vector<double> & Coef_shape
 		m_vecCurrentBlendshape = m_vecCurrentShape + m_vecCurrentExpr;	
 	}
 
-	this->rk_Meshwriter(f_name_ply, withExp);
+		std::tuple<std::vector<Eigen::Vector3f>, std::vector<Eigen::Vector3f>, std::vector<Vector3i>> _result_mesh_components;
+		
+		_result_mesh_components = this->rk_Meshwriter(f_name_ply, withExp);
+
+		return _result_mesh_components;
 }
 
-void BfmManager::rk_Meshwriter(std::string f_name_ply, bool withExp){
+
+
+std::tuple<std::vector<Eigen::Vector3f>, std::vector<Eigen::Vector3f>, std::vector<Vector3i>> BfmManager::rk_Meshwriter(std::string f_name_ply, bool withExp){
 	std::ofstream out;
 	/* Note: In Linux Cpp, we should use std::ios::out as flag, which is not necessary in Windows */
 	out.open(f_name_ply, std::ios::out | std::ios::binary);
@@ -802,7 +810,7 @@ void BfmManager::rk_Meshwriter(std::string f_name_ply, bool withExp){
 		std::string sErrMsg = "Creation of " + f_name_ply + " failed.";
 		LOG(ERROR) << sErrMsg;
 		throw std::runtime_error(sErrMsg);
-		return;
+		// return;
 	}
 
     std::cout<<"Writing face mesh ply ("<<f_name_ply<<")"<<"....";
@@ -821,6 +829,10 @@ void BfmManager::rk_Meshwriter(std::string f_name_ply, bool withExp){
 	out << "property list uchar int vertex_indices\n";
 	out << "end_header\n";
 
+	std::vector<Eigen::Vector3f> result_vertexPos;
+	std::vector<Eigen::Vector3f> result_vertexRGB;
+	std::vector<Vector3i> result_triangleList;
+
 	int cnt = 0;
 	for (int iVertice = 0; iVertice < m_nVertices; iVertice++) 
 	{
@@ -838,10 +850,16 @@ void BfmManager::rk_Meshwriter(std::string f_name_ply, bool withExp){
 			z = float(m_vecCurrentBlendshape(iVertice * 3 + 2));
 		}
 
+		Eigen::Vector3f _point_coords = {x, y, z};
+		result_vertexPos.push_back(_point_coords);
+
 		float r, g, b;
 		r = m_vecCurrentTex(iVertice * 3);
 		g = m_vecCurrentTex(iVertice * 3 + 1);
 		b = m_vecCurrentTex(iVertice * 3 + 2);
+
+		Eigen::Vector3f _point_rgb = {r, g, b};
+		result_vertexRGB.push_back(_point_rgb);
 
 		out<<x<<" "<<y<<" "<<z<<" "<<float2color(r)<<" "<<float2color(g)<<" "<<float2color(b)<<"\n";
 	}
@@ -852,11 +870,19 @@ void BfmManager::rk_Meshwriter(std::string f_name_ply, bool withExp){
 		int x = m_vecTriangleList(iFace * 3);
 		int y = m_vecTriangleList(iFace * 3 + 1);
 		int z = m_vecTriangleList(iFace * 3 + 2);
+
+		Vector3i _triangle_id_set = {x, y, z};
+		result_triangleList.push_back(_triangle_id_set);
+
 		out<<(int)N_VER_PER_FACE<<" "<<x<<" "<<y<<" "<<z<<"\n";
 	}
 
+	std::tuple<std::vector<Eigen::Vector3f>, std::vector<Eigen::Vector3f>, std::vector<Vector3i>> result_blendshape_components = std::make_tuple(result_vertexPos, result_vertexRGB, result_triangleList);
+
 	out.close();
     std::cout<<"Finish face mesh ply ("<<f_name_ply<<")"<<std::endl;
+
+	return result_blendshape_components;
 
 }
 

@@ -11,6 +11,8 @@
 #include "transform.hpp"
 #include "type_utils.hpp"
 
+#include "Eigen.h"
+
 #include <Eigen/Dense>
 #include <Eigen/StdVector>
 
@@ -240,7 +242,7 @@ public:
 	 * 		bfmManager.GetBFM(std::vector<std::double> & Coef_shape, std::vector<std::double> & Coef_Tex, std::vector<std::double> & Coef_exp)
 	*/
 
-	void GetBFM(std::string f_name_ply, std::vector<double> & Coef_shape, std::vector<double> & Coef_Tex, std::vector<double> & Coef_exp,  bool average, bool withExp);
+    std::tuple<std::vector<Eigen::Vector3f>, std::vector<Eigen::Vector3f>, std::vector<Vector3i>> GetBFM(std::string f_name_ply, std::vector<double> & Coef_shape, std::vector<double> & Coef_Tex, std::vector<double> & Coef_exp,  bool average, bool withExp);
 
 	/*
 	 * @Function GetPointer2array
@@ -283,7 +285,7 @@ public:
 	 * 
 	*/
 
-	void rk_Meshwriter(std::string f_name_ply, bool withExp);
+    std::tuple<std::vector<Eigen::Vector3f>, std::vector<Eigen::Vector3f>, std::vector<Vector3i>> rk_Meshwriter(std::string f_name_ply, bool withExp);
 
 	void GetShapeComponents(VectorXd & vec_Mu_shape, VectorXd & vec_Ev_Shape, MatrixXd & mat_Pc_Shape);
 	void GetTexComponents(VectorXd & vec_Mu_Tex, VectorXd & vec_Ev_Tex, MatrixXd & mat_Pc_Tex);
