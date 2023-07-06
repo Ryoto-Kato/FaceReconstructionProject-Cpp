@@ -28,13 +28,6 @@ const std::string right_line = "--------";
 #define USE_POINT_TO_PLANE true
 
 
-/* TODO: function to get ply or off file to show DEPTH MAP
-*
-*/
-
-//
-
-
 int main(int argc, char *argv[])
 {
     //init BFM
