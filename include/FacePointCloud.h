@@ -58,7 +58,7 @@ public:
 		// For every pixel row.
 		#pragma omp parallel for
 		for (int v = 0; v < height; ++v) {
-			// For every pixel in a row.
+			// For every pixel in a column.
 			for (int u = 0; u < width; ++u) {
 				float depth = depthMap(u, v);
 				unsigned int idx = v*width + u; // linearized index

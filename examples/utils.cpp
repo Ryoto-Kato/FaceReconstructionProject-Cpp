@@ -27,6 +27,18 @@ const std::string right_line = "--------";
 #define ps_ICP true
 #define USE_POINT_TO_PLANE true
 
+// We need to be careful matrix entry index
+// Every time you should check if indices are correct, there are different way especially Opencv
+/* u => column id, v => row id
+    - OpenCV
+        - cv::Mat rgb_cvMat (v, u)
+        - cv::Mat landmark_cvMat (v, u)
+    - Original
+        - MatrixRGB mat_rgb(u, v)
+        - MatrixRGBA mat_rgba(u, v)
+        - MatrixXf depth_map(u, v)
+        - MatrixNormalMap normalmap(u, v)
+*/
 
 int main(int argc, char *argv[])
 {
