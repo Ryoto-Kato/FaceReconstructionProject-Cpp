@@ -29,13 +29,6 @@ const std::string right_line = "--------";
 #define USE_POINT_TO_PLANE true
 
 
-/* TODO: function to get ply or off file to show DEPTH MAP
-*
-*/
-
-//
-
-
 int main(int argc, char *argv[])
 {
     //init BFM
@@ -156,6 +149,8 @@ int main(int argc, char *argv[])
     //size = [256, 256]
     //top left original coordinate = (192, 74)
     //bottom right original coordinate = (447, 329)
+    double scaler_depth = 0.001;
+    double depth_threshold = 1.0;
     uint x, y, depth;
     uint x_offset = 192;
     uint y_offset = 74;
@@ -192,10 +187,10 @@ int main(int argc, char *argv[])
 
         for(unsigned int r = 0; r <rows; r++){
             for(unsigned int c = 0; c <cols; c++){
-                unsigned char blue = mat_rgb(r, c).x();
-                unsigned char green = mat_rgb(r, c).y();
-                unsigned char red = mat_rgb(r, c).z();
-                std::cout<<"("<<(int)blue<<","<<(int)green<<","<<(int)red<<","<<depth_map(r, c)<<")"<<",\t";
+                unsigned char blue = mat_rgb(c, r).x();
+                unsigned char green = mat_rgb(c, r).y();
+                unsigned char red = mat_rgb(c, r).z();
+                std::cout<<"("<<(int)blue<<","<<(int)green<<","<<(int)red<<","<<depth_map(c, r)<<")"<<",\t";
             }
             std::cout<<std::endl;
         }
@@ -206,8 +201,11 @@ int main(int argc, char *argv[])
     float dFy = 525.0;
     float dCx = 319.5f - x_offset;
     float dCy = 239.5f - y_offset;
-    const unsigned int depth_width = 640;
-    const unsigned int depth_height = 480;
+    //original
+    // const unsigned int depth_width = 640;
+    // const unsigned int depth_height = 480;
+    const unsigned int depth_width = 256;
+    const unsigned int depth_height = 256;
     Matrix3f depth_intrinsics;
     depth_intrinsics << dFx, 0.0f,  dCx,
                  0.0f,  dFy,  dCy,
@@ -223,7 +221,7 @@ int main(int argc, char *argv[])
         Vector3f position_screen;
         position_screen << pix_landmark.x(), pix_landmark.y(), 1.0;
 
-        //backprojection
+        //backprojection)
         dlib_landmarks_vertexPos.push_back(depth_intrinsics.inverse() * (depth_map(pix_landmark.x(), pix_landmark.y()) * position_screen));
     }
 
@@ -451,21 +449,22 @@ int main(int argc, char *argv[])
 
     // Create FacePointCloud instance for Dense ICP between Depthmap
     unsigned int downsampleFactor = 1;
-    float maxDistance = 0.1f;
-    FacePointCloud FPC_depthMap{depth_map, depth_intrinsics, depth_extrinsics, depth_width, depth_height, downsampleFactor, maxDistance};
+    float maxDistance = 50.f; //5cm = 50mm
+    float minDepth = 500.f; //50cm = 500mm
+    float maxDepth = 1000.f; //100cm = 1000,mm
+    FacePointCloud FPC_depthMap{mat_rgb, depth_map, depth_intrinsics, depth_extrinsics, depth_width, depth_height, downsampleFactor, maxDistance, maxDepth, minDepth};
 
     /*
-    * MatrixNormalMap(v, u) (v in vertical, u in horizontal)
+    * MatrixNormalMap(u, v) (u in horizontal, v in vertical)
     * Each entry has respective Vector3f representing normal vector
-    *
-    * If we do not have valid normal vector ==> NormalMap(v, u) == Vector3f(MINF, MINF, MINF);
+    * If we do not have valid normal vector ==> NormalMap(u, v) == Vector3f(MINF, MINF, MINF);
     */
     MatrixNormalMap normalmap = FPC_depthMap.getNormalMap();
 
     #ifdef DEBUG
 		for(unsigned int v = 0; v < normalmap.rows(); v++){
 			for(unsigned int u = 0; u < normalmap.cols(); u++){
-				std::cout<<"RGBD_Map("<<v<<","<<u<<")"<<": "<<normalmap(v, u).transpose()<<std::endl;
+				std::cout<<"RGBD_NormalMap("<<u<<","<<v<<")"<<": "<<normalmap(u, v).transpose()<<std::endl;
 			}
 		}
     #endif
@@ -474,7 +473,7 @@ int main(int argc, char *argv[])
     *  Above depth map is pixel coordinate x,y (0, 256), and depth
     *  Need to compute backprojection of each point as we do for detected landmark
     */
-    FPC_depthMap.writeDepthMapPly("../output/depth_map.ply", 0.001);
+    FPC_depthMap.writeDepthMapPly("../output/depth_map.ply", 1.0f);
     //check if the points are registered as members of the instance
     #ifdef DEBUG
         std::cout<<"FPC_depthMap"<<std::endl;
@@ -705,7 +704,7 @@ int main(int argc, char *argv[])
         std::cout<<i<<"th triangle: ("<<result_triangle_list[i].x()<<", "<<result_triangle_list[i].y()<<", "<<result_triangle_list[i].z()<<")"<<std::endl;
     }
 
-    BfmOptimizer bfm_optimizer;
+    // BfmOptimizer bfm_optimizer;
 
 	delete landmark_optimizer;
 
