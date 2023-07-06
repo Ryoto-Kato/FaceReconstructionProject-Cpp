@@ -224,11 +224,12 @@ public:
                 unsigned char green = intensity.val[1];
                 unsigned char red = intensity.val[2];
                 Vector3uc _pix;
-                _pix.x() = blue;
+                _pix.x() = red;
                 _pix.y() = green;
-                _pix.z() = red;
+                _pix.z() = blue;
 
-                mat_rgb(r, c) = _pix;
+                // c = u, r = v
+                mat_rgb(c, r) = _pix;
             }
         }
 
@@ -250,12 +251,12 @@ public:
                 unsigned char red = intensity.val[2];
                 Vector4uc _pix;
                 unsigned int maximum = 255;
-                _pix.x() = blue;
+                _pix.x() = red;
                 _pix.y() = green;
-                _pix.z() = red;
+                _pix.z() = blue;
                 _pix.w() = (unsigned char)maximum;
-                
-                mat_rgba(r, c) = _pix;
+                // c = u, r = v
+                mat_rgba(c, r) = _pix;
             }
         }
 
