@@ -9,6 +9,7 @@
 #include "Eigen.h"
 #include "FacialLandmarkExtractor.h"
 #include <tuple>
+#include "Optimizer.h"
 
 //Procrustes for pose estimation
 #include "ProcrustesAligner.h"
@@ -72,7 +73,7 @@ int main(int argc, char *argv[])
     std::tie(averageBFM_vertex_pos, averageBFM_vertex_rgb, averageBFM_triangle_list) = bfm.writeAveBFMmesh("../output/average.ply", _withExpression);
 
     std::cout<<"Result of mesh"<<std::endl;
-    
+
     std::cout<<left_line<<"Number of vertex: "<<averageBFM_vertex_pos.size()<<right_line<<std::endl;
     for(unsigned int i = 0; i < averageBFM_vertex_pos.size(); i++){
         std::cout<<i<<"th position: ("<<averageBFM_vertex_pos[i].x()<<", "<<averageBFM_vertex_pos[i].y()<<", "<<averageBFM_vertex_pos[i].z()<<")"<<std::endl;
@@ -83,10 +84,10 @@ int main(int argc, char *argv[])
     for(unsigned int i = 0; i < averageBFM_triangle_list.size(); i++){
         std::cout<<i<<"th triangle: ("<<averageBFM_triangle_list[i].x()<<", "<<averageBFM_triangle_list[i].y()<<", "<<averageBFM_triangle_list[i].z()<<")"<<std::endl;
     }
-    
+
     #ifdef DEBUG
         // check indivisually obtained landmark pair and vertex positions
-        
+
         // unsigned int _counter_pair = 0;
         // std::cout<<"Num of landmarks: "<<original_num_landmarks<<std::endl;
         // std::cout<<left_line<<"Map dlib to BFM verticies"<<right_line<<std::endl;
@@ -102,7 +103,7 @@ int main(int argc, char *argv[])
         //     std::cout<<_counter_landmark<<"(x,y,z) = "<<lv.x()<<","<<lv.y()<<","<<lv.z()<<std::endl;
         //     _counter_landmark++;
         // }
-        
+
         for(auto & landmark : face_landmarks){
             std::cout<<left_line<<landmark.id<<"th landmark"<<right_line<<std::endl;
             std::cout<<"(dlibId, bfmId) = "<<"("<<landmark.dlib_id<<", "<<landmark.bfm_id<<")"<<std::endl;
@@ -298,7 +299,7 @@ int main(int argc, char *argv[])
     #endif
 
     num_available_landmarks = original_num_landmarks - num_truncated_landmarks;
-    
+
     //get landmark image Mat
     cv::Mat landmark_cvMat = landmarks_extractor.get_landmarkImage(dlib_landmarks, DEBUG);
     //write landmark image
@@ -320,13 +321,13 @@ int main(int argc, char *argv[])
     * Try with less correspondence
     * only consider some of detected/available (valid, non-zero depth) landmark
     */
-    
+
     if(ONLY_SELECTED_LANDMARKS){
         /*
         * select from range 0-67 (from 0 to 67)
         * e.g.,  std::vector<int> considered_landmarks_Ids = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 20, 21, 25, 26, 27, 28, 29, 30, 34, 35, 38, 41, 44, 47, 49, 51, 53, 55, 57};
-        * 
-        */ 
+        *
+        */
         std::vector<int> considered_landmarks_Ids = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 19, 24};
 
         #ifdef DEBUG
@@ -396,7 +397,7 @@ int main(int argc, char *argv[])
         std::cout<<Procrustes_estimatedPose<<std::endl;
     #endif
 
-    // Get transformed BFM landmarks given estimatePose 
+    // Get transformed BFM landmarks given estimatePose
     std::vector<Vector3f> transformed_onlyProcrustes_available_bfm_landmarks_vertexPos;
     std::vector<Vector3f> transformed_ps_bfm_landmarks_vertexPos;
     bfm.apply_SE3_to_BFMLandmarks(Procrustes_estimatedPose, available_bfm_landmarks_vertexPos, transformed_onlyProcrustes_available_bfm_landmarks_vertexPos, DEBUG);
@@ -416,17 +417,17 @@ int main(int argc, char *argv[])
     //Write BFM landmarks point cloud which is transformed only by Procrustes
     std::cout<<"Write .ply given only Procrustes transformed BFM landmarks"<<std::endl;
     FacePointCloud::writeFacePointCloudPly("../output/transformed_onlyProcrustes_landmark_bfm.ply", transformed_onlyProcrustes_available_bfm_landmarks_vertexPos);
-    
+
     /* ICP for pose estimation
     *   Input
     *       BFM landmarks
     *             FacePointCloud bfm_FPC;
     *                   std::vector<Vertex> BFM_vertices; from std::vector<Vector3f> transformed_onlyProcrustes_bfm_landmarks_vertexPos;
-    *                   [common] std::vector<Triangle> landmark_triangleIdLists; from std::vector<Vector3i> landmark_triangleIdLists 
+    *                   [common] std::vector<Triangle> landmark_triangleIdLists; from std::vector<Vector3i> landmark_triangleIdLists
     *       Dlib landmarks
     *             FacePointCloud dlib_FPC;
     *                   std::vector<Vertex> Dlib_vertices; from std::vector<Vector3f> dlib_landmarks_vertexPos;
-    *                   [common] std::vector<Triangle> landmark_triangleIdLists; from std::vector<Vector3i> landmark_triangleIdLists 
+    *                   [common] std::vector<Triangle> landmark_triangleIdLists; from std::vector<Vector3i> landmark_triangleIdLists
     */
 
     // Create FacePointCloud instance for Sparse ICP between dlib_landmark and bfm_landmark which is transformed by Procrustes
@@ -456,7 +457,7 @@ int main(int argc, char *argv[])
     /*
     * MatrixNormalMap(v, u) (v in vertical, u in horizontal)
     * Each entry has respective Vector3f representing normal vector
-    * 
+    *
     * If we do not have valid normal vector ==> NormalMap(v, u) == Vector3f(MINF, MINF, MINF);
     */
     MatrixNormalMap normalmap = FPC_depthMap.getNormalMap();
@@ -480,7 +481,7 @@ int main(int argc, char *argv[])
         FPC_depthMap.print_points_and_normals();
     #endif
 
-    /*TODO: ICP for Pose estimation 
+    /*TODO: ICP for Pose estimation
     * Point to point and point to plane
     */
 	// Setup the optimizer.
@@ -488,7 +489,7 @@ int main(int argc, char *argv[])
 
     // ceres optimizer
 	landmark_optimizer = new FPC_CeresICPOptimizer();
-	
+
 	landmark_optimizer->setMatchingMaxDistance(1e3);
 
 	if(USE_POINT_TO_PLANE){
@@ -500,27 +501,28 @@ int main(int argc, char *argv[])
 		landmark_optimizer->setNbOfIterations(1000);
 	}
 
-    // Estimate Pose by the ceres optimizer 
+    // Estimate Pose by the ceres optimizer
 	Matrix4f ICP_estimatedPose = landmark_optimizer->estimatePose(FPC_dlib_landmark, FPC_bfm_landmark);
-	
+
 	// check the estimated pose.
     #ifdef DEBUG
         std::cout<<"Estimate Pose"<<std::endl;
         std::cout<<ICP_estimatedPose<<std::endl;
     #endif
 
-    // Get transformed BFM landmarks given estimatePose 
+    // Get transformed BFM landmarks given estimatePose
     std::vector<Vector3f> transformed_ProcrustesAndICP_bfm_landmarks_vertexPos;
     bfm.apply_SE3_to_BFMLandmarks(ICP_estimatedPose, transformed_onlyProcrustes_available_bfm_landmarks_vertexPos, transformed_ProcrustesAndICP_bfm_landmarks_vertexPos, DEBUG);
 
     //Write BFM landmarks point cloud which is transformed only by Procrustes
     std::cout<<"Write .ply given Procrustes/ICP transformed BFM landmarks"<<std::endl;
     FacePointCloud::writeFacePointCloudPly("../output/transformed_ProcrustesAndICP_bfm_landmarks.ply", transformed_ProcrustesAndICP_bfm_landmarks_vertexPos);
-    
+
     #endif
 
+
     /* TODO: Update bfm model mean_shape and mean_expression POSE accordingly
-    * To get correct pose face mesh by giving parameters
+
     */
 
     //update the mean of vertex position in shape and expression in bfm_manager_first
@@ -534,10 +536,10 @@ int main(int argc, char *argv[])
     /* TODO: Parameter Estimation
     *   Energy term
     *       E(p) = E_dense(P) + E_sparse(P) + E_reg(P)
-    *       
+    *
     *       <Dense term>
     *       E_dense(p) = E_geom(P) + E_color(P)
-    *       
+    *
     *       E_geom(p) = E_point(P) + E_plane(P)
     *           //E_point;
     *                 Source (BFM face mesh)
@@ -548,7 +550,7 @@ int main(int argc, char *argv[])
     *                   - Depth Map
     *                       - [MatrixXi] RGBD image
     *                   - Depth camera intrinsic (for back-projection)
-    *                       - [Matrix3f] depth_intrinsic 
+    *                       - [Matrix3f] depth_intrinsic
     *           //E_plane;
     *                 Source (BFM face mesh)
     *                   - Vertex position
@@ -584,7 +586,7 @@ int main(int argc, char *argv[])
     *                   - [std::vector<Vector3f>] dlib_landmarks
     *       <Regularization>
     *       E_reg(P)
-    *           - BFM shape 
+    *           - BFM shape
     *               - coefficients,
     *                   - [std::vector<double>] coef_shape
     *               - standard deviation
@@ -602,7 +604,7 @@ int main(int argc, char *argv[])
     *               - standard deviation
     *                   - [Parameter_set] EXP
     *                       - [Eigen::VectorXd] EXP.variance
-    *           
+    *
     */
 
     //Set parameters (after parameter estimation)
@@ -617,15 +619,15 @@ int main(int argc, char *argv[])
     bfm.setCoefs(_coef_shape, _coef_tex, _coef_exp);
 
     /* TODO: Write resulting face mesh
-    
-    
+
+
     */
 
     #ifdef DEBUG
         std::cout<<left_line<<"BFM Parameters and Components"<<right_line<<std::endl;
         // Printing all components is too expensive to print out, hence comment out now.
         std::cout<<"Number of vertices: "<<SHAPE.num_vertices<<std::endl;
-        
+
         std::cout<<left_line<<SHAPE.name<<right_line<<std::endl;
         std::cout<<SHAPE.name<<" MEAN, vector shape ="<<SHAPE.mean.rows()<<std::endl;
         // std::cout<<SHAPE.mean<<std::endl;
@@ -691,7 +693,7 @@ int main(int argc, char *argv[])
     std::tie(result_vertex_pos, result_vertex_rgb, result_triangle_list) = bfm.writeBFMmesh("../output/gen_mesh_test1.ply", _coef_shape, _coef_tex, _coef_exp ,_withExpression);
 
     std::cout<<"Result of mesh"<<std::endl;
-    
+
     std::cout<<left_line<<"Number of vertex: "<<result_vertex_pos.size()<<right_line<<std::endl;
     for(unsigned int i = 0; i < result_vertex_pos.size(); i++){
         std::cout<<i<<"th position: ("<<result_vertex_pos[i].x()<<", "<<result_vertex_pos[i].y()<<", "<<result_vertex_pos[i].z()<<")"<<std::endl;
@@ -702,6 +704,8 @@ int main(int argc, char *argv[])
     for(unsigned int i = 0; i < result_triangle_list.size(); i++){
         std::cout<<i<<"th triangle: ("<<result_triangle_list[i].x()<<", "<<result_triangle_list[i].y()<<", "<<result_triangle_list[i].z()<<")"<<std::endl;
     }
+
+    BfmOptimizer bfm_optimizer;
 
 	delete landmark_optimizer;
 
