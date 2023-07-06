@@ -37,12 +37,13 @@ public:
 		std::cout<<"finish face point cloud configration"<<std::endl;
 	}
 
-	FacePointCloud(MatrixXf & depthMap, const Matrix3f& depthIntrinsics, const Matrix4f& depthExtrinsics, const unsigned width, const unsigned height, unsigned downsampleFactor, float maxDistance) {
+	FacePointCloud(MatrixRGB & colorMap, MatrixXf & depthMap, const Matrix3f& depthIntrinsics, const Matrix4f& depthExtrinsics, const unsigned width, const unsigned height, unsigned downsampleFactor, float maxDistance, float maxDepth, float minDepth) {
 		// Get depth intrinsics.
 		float fovX = depthIntrinsics(0, 0);
 		float fovY = depthIntrinsics(1, 1);
 		float cX = depthIntrinsics(0, 2);
 		float cY = depthIntrinsics(1, 2);
+		//max distance with adjacent neighbor
 		const float maxDistanceHalved = maxDistance / 2.f;
 
 		// Compute inverse depth extrinsics.
@@ -52,6 +53,7 @@ public:
 
 		// Back-project the pixel depths into the camera space.
 		std::vector<Vector3f> pointsTmp(width * height);
+		std::vector<Vector3uc> colorsTmp(width * height);
 
 		// For every pixel row.
 		#pragma omp parallel for
@@ -60,13 +62,14 @@ public:
 			for (int u = 0; u < width; ++u) {
 				float depth = depthMap(u, v);
 				unsigned int idx = v*width + u; // linearized index
-				if (depth == MINF) {
+				if (depth > maxDepth || depth < minDepth) {
 					pointsTmp[idx] = Vector3f(MINF, MINF, MINF);
 				}
 				else {
 					// Back-projection to camera space.
 					pointsTmp[idx] = rotationInv * Vector3f((u - cX) / fovX * depth, (v - cY) / fovY * depth, depth) + translationInv;
 				}
+				colorsTmp[idx] = colorMap(u, v);
 			}
 		}
 
@@ -100,8 +103,12 @@ public:
 				unsigned int index_vo = (v-1)*width + u;
 				Vector3f diff_u = 0.5 * (pointsTmp[index_ut] - pointsTmp[index_uo]);
 				Vector3f diff_v = 0.5 * (pointsTmp[index_vt] - pointsTmp[index_vo]);
-				normalsTmp[idx] = diff_u.cross(diff_v);
-                normalsTmp[idx].normalize();
+				if(diff_u.allFinite() && diff_v.allFinite()){
+					normalsTmp[idx] = diff_u.cross(diff_v);
+					normalsTmp[idx].normalize();
+				}else{
+					normalsTmp[idx] = Vector3f(MINF, MINF, MINF);
+				}
 			}
 		}
 
@@ -121,7 +128,7 @@ public:
 
 		for(unsigned int v = 0; v < height; v++){
 			for(unsigned int u = 0; u < width; u++){
-				_normalMap(v, u) = normalsTmp[v*width+u];
+				_normalMap(u, v) = normalsTmp[v*width+u];
 			}
 		}
 
@@ -131,14 +138,17 @@ public:
 		const unsigned nPoints = pointsTmp.size();
 		m_points.reserve(std::floor(float(nPoints) / downsampleFactor));
 		m_normals.reserve(std::floor(float(nPoints) / downsampleFactor));
+		m_points_color.reserve(std::floor(float(nPoints) / downsampleFactor));
 
 		for (int i = 0; i < nPoints; i = i + downsampleFactor) {
 			const auto& point = pointsTmp[i];
 			const auto& normal = normalsTmp[i];
+			const auto& color = colorsTmp[i];
 
-			if (point.allFinite() && normal.allFinite()) {
+			if (point.allFinite() && normal.allFinite() && color.allFinite()) {
 				m_points.push_back(point);
 				m_normals.push_back(normal);
+				m_points_color.push_back(color);
 			}
 		}
 	}
@@ -280,7 +290,11 @@ public:
         // unsigned long int cnt = 0;
         for (Vector3f point : point_clouds)
         {
-            out<<point.x()<<" "<<point.y()<<" "<<point.z()<<"\n";
+			if(point.allFinite()){
+            	out<<point.x()<<" "<<point.y()<<" "<<point.z()<<"\n";
+			}else{
+            	out<<"0.0 0.0 0.0"<<"\n";
+			}
         }
 
         out.close();
@@ -307,12 +321,22 @@ public:
         out << "property float x\n";
         out << "property float y\n";
         out << "property float z\n";
+		out << "property uchar red\n";
+		out << "property uchar green\n";
+		out << "property uchar blue\n";
         out << "end_header\n";
 
-        // unsigned long int cnt = 0;
+        unsigned int cnt = 0;
+
         for (Vector3f point : m_points)
         {
-            out<<point.x()<<" "<<point.y()<<" "<<point.z()*scale<<"\n";
+			if(point.allFinite()){
+            	out<<point.x()<<" "<<point.y()<<" "<<point.z()<<" "<<(int)m_points_color[cnt].x()<<" "<<(int)m_points_color[cnt].y()<<" "<<(int)m_points_color[cnt].z()<<"\n";
+			}else{
+            	out<<"0.0 0.0 0.0 0 0 0"<<"\n";
+			}
+
+			cnt++;
         }
 
         out.close();
@@ -323,6 +347,7 @@ public:
 
 private:
 	std::vector<Vector3f> m_points;
+	std::vector<Vector3uc> m_points_color;
 	std::vector<Vector3f> m_normals;
 	MatrixNormalMap NormalMap;
 };
