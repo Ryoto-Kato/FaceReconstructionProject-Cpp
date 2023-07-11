@@ -46,7 +46,7 @@ public:
 	BFM() = default;
 
     ~BFM(){
-    	google::ShutdownGoogleLogging();
+    	// google::ShutdownGoogleLogging();
     }
     
     bool init(int argc, char *argv[], double dFx = 525.0, double dFy = 525.0, double dCx = 319.5f-192.0, double dCy = 239.5f - 74) {
@@ -221,6 +221,15 @@ public:
         ResetCoefs();
         std::tuple<std::vector<Eigen::Vector3f>, std::vector<Eigen::Vector3f>, std::vector<Vector3i>> _result_mesh_components;
         _result_mesh_components = BFM_Manager.GetBFM(f_name_ply, Coefs_shape, Coefs_tex, Coefs_exp, true, _withExp);
+        return _result_mesh_components;
+    }
+
+    std::tuple<std::vector<Eigen::Vector3f>, std::vector<Eigen::Vector3f>, std::vector<Vector3i>> transformedBFMMesh(std::string f_name_ply, std::vector<double> & _coef_shape, std::vector<double> & _coef_tex, std::vector<double> & _coef_exp, bool _withExp){
+        //write mesh using pBfManager->GenBFM()
+        setCoefs(_coef_shape, _coef_tex, _coef_exp);
+        std::tuple<std::vector<Eigen::Vector3f>, std::vector<Eigen::Vector3f>, std::vector<Vector3i>> _result_mesh_components;
+        _result_mesh_components = BFM_Manager.GetBFM(f_name_ply, Coefs_shape, Coefs_tex, Coefs_exp, false, _withExp);
+        std::cout<<"saved transformed mesh at "<<f_name_ply<<std::endl;
         return _result_mesh_components;
     }
 

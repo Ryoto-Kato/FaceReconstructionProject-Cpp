@@ -215,8 +215,23 @@ public:
 		return true;
 	}
 
+	std::vector<Vector3d> convert_float2double(std::vector<Vector3f> & float_vector){
+		int length = float_vector.size();
+		std::vector<Vector3d> double_vector;
+		for(int i = 0; i<length; i++){
+			Vector3d _temp = float_vector[i].cast<double>();
+			double_vector.push_back(_temp);
+		}
+		return double_vector;
+	}
+
 	std::vector<Vector3f>& getPoints() {
 		return m_points;
+	}
+
+	std::vector<Vector3d>& getPoints_double() {
+		std::vector<Vector3d> _double_m_points = convert_float2double(m_points);
+		return _double_m_points;
 	}
 
 	const std::vector<Vector3f>& getPoints() const {
@@ -225,6 +240,11 @@ public:
 
 	std::vector<Vector3f>& getNormals() {
 		return m_normals;
+	}
+
+	std::vector<Vector3d>& getNormals_double() {
+		std::vector<Vector3d> _double_m_normals = convert_float2double(m_normals);
+		return _double_m_normals;
 	}
 
 	const std::vector<Vector3f>& getNormals() const {

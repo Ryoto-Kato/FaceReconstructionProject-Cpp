@@ -8,7 +8,7 @@
 #include <flann/flann.hpp>
 
 #include "SimpleMesh.h"
-#include "NearestNeighbor.h"
+#include "NearestNeighbor_poseEstimate.h"
 #include "FacePointCloud.h"
 #include "ProcrustesAligner.h"
 
@@ -279,7 +279,7 @@ public:
 	FPC_ICPOptimizer() : 
 		m_bUsePointToPlaneConstraints{ false },
 		m_nIterations{ 20 },
-		m_nearestNeighborSearch{ std::make_unique<NearestNeighborSearchFlann>() }
+		m_nearestNeighborSearch{ std::make_unique<NearestNeighborSearch_poseEstimateFlann>() }
 	{ }
 
 	void setMatchingMaxDistance(float maxDistance) {
@@ -299,7 +299,7 @@ public:
 protected:
 	bool m_bUsePointToPlaneConstraints;
 	unsigned m_nIterations;
-	std::unique_ptr<NearestNeighborSearch> m_nearestNeighborSearch;
+	std::unique_ptr<NearestNeighborSearch_poseEstimate> m_nearestNeighborSearch;
 
 	std::vector<Vector3f> transformPoints(const std::vector<Vector3f>& sourcePoints, const Matrix4f& pose) {
 		std::vector<Vector3f> transformedPoints;
@@ -328,11 +328,11 @@ protected:
 		return transformedNormals;
 	}
 
-	void pruneCorrespondences(const std::vector<Vector3f>& sourceNormals, const std::vector<Vector3f>& targetNormals, std::vector<Match>& matches) {
+	void pruneCorrespondences(const std::vector<Vector3f>& sourceNormals, const std::vector<Vector3f>& targetNormals, std::vector<Match_ps>& matches) {
 		const unsigned nPoints = sourceNormals.size();
 
 		for (unsigned i = 0; i < nPoints; i++) {
-			Match& match = matches[i];
+			Match_ps& match = matches[i];
 			if (match.idx >= 0) {
 				const auto& sourceNormal = sourceNormals[i];
 				const auto& targetNormal = targetNormals[match.idx];
@@ -424,7 +424,7 @@ private:
 		options.num_threads = 8;
 	}
 
-	void prepareConstraints(const std::vector<Vector3f>& sourcePoints, const std::vector<Vector3f>& targetPoints, const std::vector<Vector3f>& targetNormals, const std::vector<Match> matches, const FPC_PoseIncrement<double>& poseIncrement, ceres::Problem& problem) const {
+	void prepareConstraints(const std::vector<Vector3f>& sourcePoints, const std::vector<Vector3f>& targetPoints, const std::vector<Vector3f>& targetNormals, const std::vector<Match_ps> matches, const FPC_PoseIncrement<double>& poseIncrement, ceres::Problem& problem) const {
 		//poseIncrement (containing the lie algebra) is to be optimized
 		/* poseIncrement will return the address of array (6 elements)
 		double* pose = poseIncrement.getData();

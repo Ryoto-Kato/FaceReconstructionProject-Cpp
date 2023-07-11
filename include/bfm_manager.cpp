@@ -825,6 +825,7 @@ std::tuple<std::vector<Eigen::Vector3f>, std::vector<Eigen::Vector3f>, std::vect
 	out << "property uchar red\n";
 	out << "property uchar green\n";
 	out << "property uchar blue\n";
+	out << "property uchar alpha\n";
 	out << "element face " << m_nFaces << "\n";
 	out << "property list uchar int vertex_indices\n";
 	out << "end_header\n";
@@ -861,7 +862,9 @@ std::tuple<std::vector<Eigen::Vector3f>, std::vector<Eigen::Vector3f>, std::vect
 		Eigen::Vector3f _point_rgb = {r, g, b};
 		result_vertexRGB.push_back(_point_rgb);
 
-		out<<x<<" "<<y<<" "<<z<<" "<<float2color(r)<<" "<<float2color(g)<<" "<<float2color(b)<<"\n";
+		int alpha = 0;
+
+		out<<x<<" "<<y<<" "<<z<<" "<<float2color(r)<<" "<<float2color(g)<<" "<<float2color(b)<<" "<<alpha<<"\n";
 	}
 
 	unsigned char N_VER_PER_FACE = 3;
