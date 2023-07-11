@@ -40,7 +40,7 @@ project(examples)
 # Tell cmake we will need dlib.  This command will pull in dlib and compile it
 # into your project.  Note that you don't need to compile or install dlib.  All
 # cmake needs is the dlib source code folder and it will take care of everything.
-add_subdirectory(../libs/dlib dlib_build)
+add_subdirectory(../dlib dlib_build)
 
 # If you have cmake 3.14 or newer you can even use FetchContent instead of
 # add_subdirectory() to pull in dlib as a dependency.  So instead of using the
