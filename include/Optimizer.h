@@ -15,6 +15,12 @@
 
 #include <string>
 #include <algorithm>
+#include <tuple>
+#include <set>
+
+const unsigned int num_shape_pcs = 1;
+const unsigned int num_tex_pcs = 1;
+const unsigned int num_exp_pcs = 1;
 
 template <class T>
 class CMatrix
@@ -125,7 +131,7 @@ static void Generic_fillMat(const CMatrix<T> & input, CMatrix<T> & output)
 
 
 template <typename T>
-static void Generic_DotProduct(const CMatrix<T> & input, const T *coefs, const int row_index, const int dim, T *output)
+static void Generic_DotProduct(const T** input, const T *coefs, const int row_index, const int dim, T *output)
 {
 	T _output[3];
 	_output[0] = T(0);
@@ -137,9 +143,9 @@ static void Generic_DotProduct(const CMatrix<T> & input, const T *coefs, const i
 
 	for (int c = 0; c < num_columns; c++)
 	{
-		T _out0 = input.data[0][c] * coefs[c];
-		T _out1 = input.data[1][c] * coefs[c];
-		T _out2 = input.data[2][c] * coefs[c];
+		T _out0 = input[0][c] * coefs[c];
+		T _out1 = input[1][c] * coefs[c];
+		T _out2 = input[2][c] * coefs[c];
 		_output[0] += _out0;
 		_output[1] += _out1;
 		_output[2] += _out2;
@@ -168,11 +174,216 @@ VectorXd LinearizeEigenMat(MatrixXd & mat){
 class Constraint_bfmManager
 {
 public:
+
+	Constraint_bfmManager(const Parameter_set &_SHAPE, const Parameter_set &_TEX, const Parameter_set &_EXP, std::vector<Vector3i> _triangle_list) : SHAPE{_SHAPE}, TEX{_TEX}, EXP{_EXP}, triangle_list{_triangle_list} {}
+
+	inline Parameter_set* get_SHAPEParamSet(){
+		return &SHAPE;
+	}
+
+	inline Parameter_set* get_TEXParamSet(){
+		return &TEX;
+	}
+
+	inline Parameter_set* get_EXPParamSet(){
+		return &EXP;
+	}
+
+	// inline MatrixXd * get_SHAPEPcs(){
+	// 	return &(SHAPE.pc);
+	// }
+
+	// inline VectorXd * get_SHAPEMu(){
+	// 	return &(SHAPE.mean);
+	// }
+
+	// inline MatrixXd * get_TEXPcs(){
+	// 	return &(TEX.pc);
+	// }
+
+	// inline VectorXd * get_TEXMu(){
+	// 	return &(TEX.mean);
+	// }
+
+	// inline MatrixXd * get_EXPPcs(){
+	// 	return &(EXP.pc);
+	// }
+
+	// inline VectorXd * get_EXPMu(){
+	// 	return &(EXP.mean);
+	// }
+
+	template <typename T>
+	void get_SHAPEPc(const int _index, const int _dim, CMatrix<T> & pc){
+		int index = int(_index);
+		int dim = int(_dim);
+
+		for(unsigned int j = 0; j < dim; j++){
+			T x, y, z;
+			x = T(SHAPE.pc(index, j));
+			y = T(SHAPE.pc(index+1, j));
+			z = T(SHAPE.pc(index+2, j));
+			pc.data[0][j] = x;
+			pc.data[1][j] = y;
+			pc.data[2][j] = z;
+		}
+	}
+
+	template <typename T>
+	void get_TEXPc(const int _index, const int _dim, CMatrix<T> & pc){
+		int index = int(_index);
+		int dim = int(_dim);
+		for(unsigned int j = 0; j < dim; j++){
+			T x, y, z;
+			x = T(TEX.pc(index, j));
+			y = T(TEX.pc(index+1, j));
+			z = T(TEX.pc(index+2, j));
+			pc.data[0][j] = x;
+			pc.data[1][j] = y;
+			pc.data[2][j] = z;
+		}
+	}
+
+	template <typename T>
+	void get_EXPPc(const int _index, const int _dim, CMatrix<T> & pc){
+		int index = int(_index);
+		int dim = int(_dim);
+		for(unsigned int j = 0; j < dim; j++){
+			T x, y, z;
+			x = T(EXP.pc(index, j));
+			y = T(EXP.pc(index+1, j));
+			z = T(EXP.pc(index+2, j));
+			pc.data[0][j] = x;
+			pc.data[1][j] = y;
+			pc.data[2][j] = z;
+		}
+	}
+
+	template <typename T>
+	void get_SHAPEMu(T * means, int _num_vertices){
+
+		for(unsigned int i = 0; i < _num_vertices; i++){
+			T x, y, z;
+			x = T(SHAPE.mean(3*i));
+			y = T(SHAPE.mean(3*i+1));
+			z = T(SHAPE.mean(3*i+2));
+			means[3*i] = x;
+			means[3*i+1] = y;
+			means[3*i+2] = z;
+		}
+
+	}
+
+	template <typename T>
+	void get_TEXMu(T * means, int _num_vertices){
+
+		for(unsigned int i = 0; i < _num_vertices; i++){
+			T x, y, z;
+			x = T(TEX.mean(3*i));
+			y = T(TEX.mean(3*i+1));
+			z = T(TEX.mean(3*i+2));
+			means[3*i] = x;
+			means[3*i+1] = y;
+			means[3*i+2] = z;
+		}
+
+	}
+
+	template <typename T>
+	void get_EXPMu(T * means, int _num_vertices){
+
+		for(unsigned int i = 0; i < num_vertices; i++){
+			T x, y, z;
+			x = T(EXP.mean(3*i));
+			y = T(EXP.mean(3*i+1));
+			z = T(EXP.mean(3*i+2));
+			means[3*i] = x;
+			means[3*i+1] = y;
+			means[3*i+2] = z;
+		}
+	}
+
+	inline double *GetPointer2array(std::vector<double> _coeffs){
+		double * pointer = (double*)malloc(_coeffs.size()*sizeof(double));
+		double * id = pointer;
+		int counter = 0;
+
+		while(counter < _coeffs.size()){
+			*id = _coeffs[counter];
+			counter++;
+			id++;
+		}
+		
+		return pointer;
+	}
+
+	template<typename Derived>
+	Matrix<Derived, Dynamic, 1> get_component(const Derived *const aCoef, 
+		const VectorXd &vecMu, const MatrixXd &matPc, unsigned int nLength) const
+	{
+		assert(aCoef != nullptr);
+		// assert(nLength >= 0);
+
+		Matrix<Derived, Dynamic, 1> tmpCoef(nLength);
+		for(auto i = 0u; i < nLength; i++)
+			tmpCoef(i) = aCoef[i];
+
+		Matrix<Derived, Dynamic, 1> tmpMu = vecMu.cast<Derived>();
+		Matrix<Derived, Dynamic, Dynamic> tmpPc = matPc.cast<Derived>();
+		// return tmpMu + tmpPc * tmpCoef.cwiseProduct(tmpEv);
+		return tmpMu + tmpPc * tmpCoef;
+	}
+
+	std::pair<std::vector<Vector3d>, std::vector<Vector3d>> get_tranformedBFMMesh(std::vector<double> & Coef_shape, std::vector<double> & Coef_tex, std::vector<double> & Coef_exp){
+		int num_shapePcs = Coef_shape.size();
+		int num_texPcs = Coef_tex.size();
+		int num_expPcs = Coef_exp.size();
+		
+		double * p2shape = GetPointer2array(Coef_shape);
+		double * p2tex = GetPointer2array(Coef_tex);
+		double * p2exp = GetPointer2array(Coef_exp);
+
+		if(num_shapePcs != num_shape_pcs || num_texPcs != num_tex_pcs || num_expPcs != num_exp_pcs){
+			std::cout<<"Different number of coefficients are given"<<std::endl;
+		}
+
+		VectorXd vecCurrentShape = get_component(p2shape, SHAPE.mean, SHAPE.pc, num_shapePcs);
+		VectorXd vecCurrentTex = get_component(p2tex, TEX.mean, TEX.pc, num_texPcs);
+		VectorXd vecCurrentExp = get_component(p2exp, EXP.mean, EXP.pc, num_expPcs);
+		VectorXd vecCurrentBlendshape = vecCurrentShape + vecCurrentExp;
+
+		std::vector<Vector3d> current_vertices_pos;
+		std::vector<Vector3d> current_vertices_rgb;
+		unsigned int cnt = 0;
+		for (unsigned int i = 0; i < num_vertices; i++){
+			
+			double *x, *y, *z;
+			double *r, *g, *b;
+			x = &(vecCurrentShape(i * 3));
+			y = &(vecCurrentTex(i * 3 + 1));
+			z = &(vecCurrentExp(i * 3 + 2));
+
+			r = &(vecCurrentTex(i * 3));
+			g = &(vecCurrentTex(i * 3 + 1));
+			b = &(vecCurrentTex(i * 3 + 2));
+
+			Vector3d _current_shape = {*x, *y, *z};
+			Vector3d _current_rgb = {*r, *g, *b};
+
+			current_vertices_pos.push_back(_current_shape);
+			current_vertices_rgb.push_back(_current_rgb);
+
+		}
+		
+		return {current_vertices_pos, current_vertices_rgb};
+	}
+
+private:
 	Parameter_set SHAPE;
 	Parameter_set TEX;
 	Parameter_set EXP;
-
-	Constraint_bfmManager(const Parameter_set &_SHAPE, const Parameter_set &_TEX, const Parameter_set &_EXP) : SHAPE{_SHAPE}, TEX{_TEX}, EXP{_EXP} {}
+	std::vector<Vector3i> triangle_list;
+	const int num_vertices = 53149;	
 };
 
 template <typename T>
@@ -180,8 +391,12 @@ class Generic_BFMUpdate
 {
 public:
 	// array_shape. array_exp, array_tex = coefficients
-	explicit Generic_BFMUpdate(const Parameter_set *_parameter_set, T *const _array, const int _dim) : parameter_set{_parameter_set}, m_array{_array}, dim{_dim}
+	explicit Generic_BFMUpdate(T * _means, T ** _pcs, T *const _array, const int _dim) : means{_means}, pcs{_pcs}, m_array{_array}, dim{_dim}
 	{
+	}
+
+	explicit Generic_BFMUpdate(Parameter_set * _parameter_set , T *const _array, const int _dim) : parameter_set{_parameter_set}, m_array{_array}, dim{_dim}{
+
 	}
 
 	void setZero()
@@ -211,8 +426,20 @@ public:
 
 		int _int_dim = int(dim);
 
-		T tmpVecMu[_int_dim];
-		Generic_fillVect(parameter_set->mean, tmpVecMu);
+		T tmpMu[3 * num_vertices];
+		for (auto i = 0; i = num_vertices; i++){
+			tmpMu[3*i] = T(means[3*i]);
+			tmpMu[3*i+1] = T(means[3*i+1]);
+			tmpMu[3*i+2] = T(means[3*i+2]);
+		}
+
+		T tmpPcs[3][_int_dim];
+
+        for(int i = 0; i < 3; i++) {
+            for(int j = 0; j < _int_dim; j++) {
+                tmpPcs[i][j] = T(pcs[i][j]);
+            }
+        }
 
 		T tmpCoef[_int_dim];
 		for (auto i = 0; i < _int_dim; i++)
@@ -228,17 +455,19 @@ public:
 
 		int _int_cnt = cnt;
 
-		CMatrix<T> _extracted_pc(3, _int_dim);
-		for(unsigned int j = 0; j < _int_dim; j++){
-			_extracted_pc.data[0][j] = T(parameter_set->pc(_int_cnt,j));
-			_extracted_pc.data[1][j] = T(parameter_set->pc(_int_cnt+1,j));
-			_extracted_pc.data[2][j] = T(parameter_set->pc(_int_cnt+2,j));
+		for (int c = 0; c < _int_dim; c++)
+		{
+			T _out0 = tmpPcs[0][c] * tmpCoef[c];
+			T _out1 = tmpPcs[1][c] * tmpCoef[c];
+			T _out2 = tmpPcs[2][c] * tmpCoef[c];
+			noise[0] += _out0;
+			noise[1] += _out1;
+			noise[2] += _out2;
 		}
-		
-		Generic_DotProduct(_extracted_pc, tmpCoef, cnt, dim, noise);
-		current_shape[0] = tmpVecMu[_int_cnt] + noise[0];
-		current_shape[1] = tmpVecMu[_int_cnt + 1] + noise[1];
-		current_shape[2] = tmpVecMu[_int_cnt + 2] + noise[2];
+
+		current_shape[0] = tmpMu[_int_cnt] + noise[0];
+		current_shape[1] = tmpMu[_int_cnt + 1] + noise[1];
+		current_shape[2] = tmpMu[_int_cnt + 2] + noise[2];
 
 		transformed_point[0] = current_shape[0];
 		transformed_point[1] = current_shape[1];
@@ -248,6 +477,8 @@ public:
 private:
 	// m_shape. m_exp, m_tex = coefficients
 	T *m_array;
+	T **pcs;
+	T *means;
 	const Parameter_set * parameter_set;
 	const int dim; //int
 	const int num_vertices = 53149;
@@ -259,7 +490,7 @@ private:
 class PointToPointConstraint
 {
 public:
-	PointToPointConstraint(const Constraint_bfmManager *_constraint_bfmManager, const Vector3d &sourcePoint, const Vector3d &targetPoint, const double weight, const int _index) : constraint_bfmManager{_constraint_bfmManager}, m_sourcePoint{sourcePoint}, m_targetPoint{targetPoint}, m_weight{weight}, m_index{_index}
+	PointToPointConstraint(Constraint_bfmManager *_constraint_bfmManager, const Vector3d &sourcePoint, const Vector3d &targetPoint, const double weight, const int _index) : constraint_bfmManager{_constraint_bfmManager}, m_sourcePoint{sourcePoint}, m_targetPoint{targetPoint}, m_weight{weight}, m_index{_index}
 	{
 	}
 
@@ -300,16 +531,31 @@ public:
 		// Generic_fillMat(constraint_bfmManager->TEX.pc, matTexPc);
 		// Generic_fillMat(constraint_bfmManager->EXP.pc, matExpPc);
 
-		Generic_BFMUpdate<T> bfmShapeUpdate = Generic_BFMUpdate<T>(&(constraint_bfmManager->SHAPE), const_cast<T *const>(_coefs_shape), dim_shape);
-		Generic_BFMUpdate<T> bfmExpUpdate = Generic_BFMUpdate<T>(&(constraint_bfmManager->EXP), const_cast<T *const>(_coefs_exp), dim_exp);
+		const int _template_index = m_index;
+		const int _index = 3 * m_index;
+
+		std::cout<<_index<<std::endl;
+
+		CMatrix<T> _shape_pc(3, dim_shape);
+		constraint_bfmManager->get_SHAPEPc<T>(_index, dim_shape, _shape_pc);
+		T **_shape_matPc = _shape_pc.data;
+		T _shape_mu[num_vertices];
+		constraint_bfmManager->get_SHAPEMu<T>(_shape_mu, num_vertices);
+		
+		CMatrix<T> _exp_pc(3, dim_exp);
+		constraint_bfmManager->get_EXPPc<T>(_index, dim_exp, _exp_pc);
+		T ** _exp_matPc = _exp_pc.data;
+		T _exp_mu[num_vertices];
+		constraint_bfmManager->get_EXPMu<T>(_exp_mu, num_vertices);
+
+		Generic_BFMUpdate<T> bfmShapeUpdate = Generic_BFMUpdate<T>(_shape_mu, _shape_matPc, const_cast<T *const>(_coefs_shape), dim_shape);
+		Generic_BFMUpdate<T> bfmExpUpdate = Generic_BFMUpdate<T>(_exp_mu, _exp_matPc, const_cast<T *const>(_coefs_exp), dim_exp);
 
 		T updateShape_vertices[3];
 		T updateExp_vertices[3];
 		T sourcePoint[3];
 
 		fillVector(m_sourcePoint, sourcePoint);
-
-		const int _template_index = m_index;
 
 		bfmShapeUpdate.apply_params(_template_index, updateShape_vertices);
 		bfmExpUpdate.apply_params(_template_index, updateExp_vertices);
@@ -318,6 +564,7 @@ public:
 		blendshape_vertices[0] = updateShape_vertices[0] + updateExp_vertices[0];
 		blendshape_vertices[1] = updateShape_vertices[1] + updateExp_vertices[1];
 		blendshape_vertices[2] = updateShape_vertices[2] + updateExp_vertices[2];
+
 
 		T targetPoint[3];
 		fillVector(m_targetPoint, targetPoint);
@@ -344,23 +591,23 @@ public:
 		return true;
 	}
 
-	static ceres::CostFunction *create(const Constraint_bfmManager *_constraint_bfmManager, const Vector3d &sourcePoint, const Vector3d &targetPoint, const double weight, const int index){
-		return new ceres::AutoDiffCostFunction<PointToPointConstraint, 3, 199, 100>(
+	static ceres::CostFunction *create(Constraint_bfmManager *_constraint_bfmManager, const Vector3d &sourcePoint, const Vector3d &targetPoint, const double weight, const int index){
+		return new ceres::AutoDiffCostFunction<PointToPointConstraint, 3, 1, 1>(
 			new PointToPointConstraint(_constraint_bfmManager, sourcePoint, targetPoint, weight, index)
 			);
 	}
 
 protected:
-	const Constraint_bfmManager *constraint_bfmManager;
+	Constraint_bfmManager *constraint_bfmManager;
 	const Vector3d m_sourcePoint;
 	const Vector3d m_targetPoint;
 	const double m_weight;
 	const int m_index;
 	const int num_vertices = 53149;
 	const double LAMBDA = 1.0;
-	const int dim_shape = 199;
-	const int dim_tex = 199;
-	const int dim_exp = 100;
+	const int dim_shape = num_shape_pcs;
+	const int dim_tex = num_tex_pcs;
+	const int dim_exp = num_exp_pcs;
 };
 
 // class PointToPlaneConstraint {
@@ -480,7 +727,7 @@ public:
 		m_nIterations = nIterations;
 	}
 
-	virtual std::tuple<std::vector<double>, std::vector<double>, std::vector<double>> estimateParams(const FacePointCloud &source, const FacePointCloud &target, Parameter_set &SHAPE, Parameter_set &TEX, Parameter_set &EXP, std::vector<double> _initial_coef_shape, std::vector<double> _initial_coef_tex, std::vector<double> _initial_coef_exp, BFM * bfm){};
+	virtual std::tuple<std::vector<double>, std::vector<double>, std::vector<double>> estimateParams(const FacePointCloud &source, const FacePointCloud &target, Parameter_set &SHAPE, Parameter_set &TEX, Parameter_set &EXP, std::vector<double> _initial_coef_shape, std::vector<double> _initial_coef_tex, std::vector<double> _initial_coef_exp, BFM & bfm){};
 
 protected:
 	bool m_bUsePointToPlaneConstraints;
@@ -491,11 +738,13 @@ protected:
 	{
 		const unsigned nPoints = sourceNormals.size();
 
-		bool are_MINF = true;
 		int counter_invalid_point = 0;
+		int counter_valid_point = 0;
+
 
 		for (unsigned i = 0; i < nPoints; i++)
 		{
+			bool are_MINF = true;
 			Match &match = matches[i];
 			if (match.idx >= 0)
 			{
@@ -504,6 +753,7 @@ protected:
 
 				if(sourceNormal.allFinite() && targetNormal.allFinite()){
 					are_MINF = false;
+					counter_valid_point++;
 				}
 
 				// TODO: Invalidate the match (set it to -1) if the angle between the normals is greater than 60
@@ -522,6 +772,7 @@ protected:
 		}
 
 		std::cout<<"invalid point: "<<counter_invalid_point<<std::endl;
+		std::cout<<"valid point: "<<counter_valid_point<<std::endl;
 	}
 };
 
@@ -537,6 +788,18 @@ std::vector<Vector3d> convert_float2double(std::vector<Vector3f> &float_vector)
 	return double_vector;
 }
 
+std::vector<Vector3f> convert_double2float(std::vector<Vector3d> &double_vector)
+{
+	int length = double_vector.size();
+	std::vector<Vector3f> float_vector;
+	for (int i = 0; i < length; i++)
+	{
+		Vector3f _temp = double_vector[i].cast<float>();
+		float_vector.push_back(_temp);
+	}
+	return float_vector;
+}
+
 /**
  * ICP optimizer - using Ceres for optimization.
  */
@@ -545,7 +808,7 @@ class CeresICPOptimizer : public ICPOptimizer
 public:
 	CeresICPOptimizer() {}
 	// shape tex, exp
-	virtual std::tuple<std::vector<double>, std::vector<double>, std::vector<double>> estimateParams(const FacePointCloud &source, const FacePointCloud &target, Parameter_set &SHAPE, Parameter_set &TEX, Parameter_set &EXP, std::vector<double> _initial_coef_shape, std::vector<double> _initial_coef_tex, std::vector<double> _initial_coef_exp, BFM * bfm) override
+	virtual std::tuple<std::vector<double>, std::vector<double>, std::vector<double>> estimateParams(const FacePointCloud &source, const FacePointCloud &target, Parameter_set &SHAPE, Parameter_set &TEX, Parameter_set &EXP, std::vector<double> _initial_coef_shape, std::vector<double> _initial_coef_tex, std::vector<double> _initial_coef_exp, BFM & bfm) override
 	{
 		// Build the index of the FLANN tree (for fast nearest neighbor lookup).
 		int num_vertices = 53149;
@@ -559,7 +822,7 @@ public:
 		std::vector<Vector3d> target_normals = convert_float2double(_float_target_normals);
 		std::vector<Vector3d> source_points = convert_float2double(_float_source_points);
 
-		m_nearestNeighborSearch->buildIndex(target_points);
+		m_nearestNeighborSearch->buildIndex(_float_target_points);
 
 		// simple addition shape and exp
 		std::vector<double> estimated_coefs_shape;
@@ -568,47 +831,58 @@ public:
 		std::copy(_initial_coef_tex.begin(), _initial_coef_tex.end(), std::back_inserter(estimated_coefs_tex));
 		std::vector<double> estimated_coefs_exp;
 		std::copy(_initial_coef_exp.begin(), _initial_coef_exp.end(), std::back_inserter(estimated_coefs_exp));
+		
+		std::cout<<"Estimated_coefs_shape"<<std::endl;
+		for(auto item_shape: estimated_coefs_shape){
+			std::cout<<item_shape<<std::endl;
+		}
+
+		std::cout<<"Estimated_coefs_tex"<<std::endl;
+		for(auto item_tex: estimated_coefs_tex){
+			std::cout<<item_tex<<std::endl;
+		}
+	
+		std::cout<<"Estimated_coefs_exp"<<std::endl;
+		for(auto item_exp: estimated_coefs_exp){
+			std::cout<<item_exp<<std::endl;
+		}
 
 		std::cout<<"initial_coefs"<<std::endl;
 		std::cout<<"shape: "<<estimated_coefs_shape.size()<<std::endl;
 		std::cout<<"tex: "<<estimated_coefs_tex.size()<<std::endl;
 		std::cout<<"exp: "<<estimated_coefs_exp.size()<<std::endl;
 
-		double num_shapePc = 199;
-		double num_texPc = 199;
-		double num_expPc = 100;
+		int _int_num_shapePc = num_shape_pcs;
+		int _int_num_texPc = num_tex_pcs;
+		int _int_num_expPc = num_exp_pcs;
 
-		int _int_num_shapePc = 199;
-		int _int_num_texPc = 199;
-		int _int_num_expPc = 100;
+		double _increment_coef_shape[_int_num_shapePc];
+		double _increment_coef_tex[_int_num_texPc];
+		double _increment_coef_exp[_int_num_expPc];
 
-		double _increment_coef_shape[199];
-		double _increment_coef_tex[199];
-		double _increment_coef_exp[100];
+		std::vector<Vector3f> before_BFM_vertex_pos;
+		std::vector<Vector3f> before_BFM_vertex_rgb;
+		std::vector<Vector3i> BFM_triangle_list;
+			
+		std::string f_name = "../output/before_paramEst.ply";
+		std::tie(before_BFM_vertex_pos, before_BFM_vertex_rgb, BFM_triangle_list) = bfm.writeAveBFMmesh(f_name, false);
 
-		// double vecMuShape[159447];
-		// double vecMuTex[159447];
-		// double vecMuExp[159447];
 
-		// Generic_fillVect(SHAPE.mean, vecMuShape);
-		// Generic_fillVect(TEX.mean, vecMuTex);
-		// Generic_fillVect(EXP.mean, vecMuExp);
+		Constraint_bfmManager constraint_bfmManager(SHAPE, TEX, EXP, BFM_triangle_list);
 
-		// CMatrix<double> matPcShape(159447, 199);
-		// CMatrix<double> matPcTex(159447, 199);
-		// CMatrix<double> matPcExp(159447, 100);
+		// CMatrix<T> * _shape_pc = constraint_bfmManager->get_SHAPEPc(_index, dim_shape);
+		// T **const _shape_matPc = _shape_pc->data;
+		// T *const _shape_mu = constraint_bfmManager->get_SHAPEMu();
+		// CMatrix<T> * _exp_pc = constraint_bfmManager->get_EXPPc(_index, dim_exp);
+		// T **const _exp_matPc = _exp_pc->data;
+		// T *const _exp_mu = constraint_bfmManager->get_EXPMu();
 
-		// Generic_fillMat(SHAPE.pc, matPcShape);
-		// Generic_fillMat(TEX.pc, matPcTex);
-		// Generic_fillMat(EXP.pc, matPcExp);
-
-		auto bfmMeshShapeUpdate = Generic_BFMUpdate<double>(&SHAPE, _increment_coef_shape, num_shapePc);
-		auto bfmMeshTexUpdate = Generic_BFMUpdate<double>(&TEX, _increment_coef_tex, num_texPc);
-		auto bfmMeshExpUpdate = Generic_BFMUpdate<double>(&EXP, _increment_coef_exp, num_expPc);
+		auto bfmMeshShapeUpdate = Generic_BFMUpdate<double>(&SHAPE, _increment_coef_shape, _int_num_shapePc);
+		auto bfmMeshTexUpdate = Generic_BFMUpdate<double>(&TEX, _increment_coef_tex, _int_num_texPc);
+		auto bfmMeshExpUpdate = Generic_BFMUpdate<double>(&EXP, _increment_coef_exp, _int_num_expPc);
 		bfmMeshShapeUpdate.setZero();
 		bfmMeshTexUpdate.setZero();
 		bfmMeshExpUpdate.setZero();
-
 		// iterative optimization
 		for (int i = 0; i < m_nIterations; ++i)
 		{
@@ -620,14 +894,21 @@ public:
 			//  std::vector<Vector3f> deformed_source_vertices;
 			//  std::vector<Vector3f> deformed_source_normals;
 			// TODO:: create a function which can return deformed_source_vertices given coefficients for the shape
-			std::vector<Vector3f> updated_BFM_vertex_pos;
-			std::vector<Vector3f> updated_BFM_vertex_rgb;
-			std::vector<Vector3i> updated_BFM_triangle_list;
 
-			std::string f_name = "../output/transformed_mesh_" + std::to_string(i) + ".ply";
-			std::tie(updated_BFM_vertex_pos, updated_BFM_vertex_rgb, updated_BFM_triangle_list) = bfm->transformedBFMMesh(f_name, estimated_coefs_shape, estimated_coefs_tex, estimated_coefs_exp, true);
+			//here transformed TODO
+			std::vector<Vector3d> updated_BFM_vertex_pos;
+			std::vector<Vector3d> updated_BFM_vertex_rgb;
+			std::tie(updated_BFM_vertex_pos, updated_BFM_vertex_rgb) = constraint_bfmManager.get_tranformedBFMMesh(estimated_coefs_shape, estimated_coefs_tex, estimated_coefs_exp);
 
-			FacePointCloud transformed_sourceMesh{updated_BFM_vertex_pos, updated_BFM_triangle_list};
+			std::vector<Vector3f> float_updated_BFM_vertex_pos = convert_double2float(updated_BFM_vertex_pos);
+			
+			// this should be given std::vector<Vector3f> not double
+			FacePointCloud transformed_sourceMesh{float_updated_BFM_vertex_pos, BFM_triangle_list};
+
+			// std::cout<<"updated_BFM_vertex_pos"<<std::endl;
+			// for(int s = 0; s < updated_BFM_vertex_pos.size(); s++){
+			// 	std::cout<<s<<"th vertex pos: "<<updated_BFM_vertex_pos[s].transpose()<<std::endl;
+			// }
 
 			std::vector<Vector3d> d_transformed_vertex_pos = convert_float2double(transformed_sourceMesh.getPoints());
 			std::vector<Vector3d> d_transformed_normals = convert_float2double(transformed_sourceMesh.getNormals());
@@ -636,11 +917,16 @@ public:
 			// transformed_sourceMesh.getNormals(); //<= return std::vector<Vector3f> normals
 
 			// matches contains the correspondences
-			auto matches = m_nearestNeighborSearch->queryMatches(d_transformed_vertex_pos);
+			auto matches = m_nearestNeighborSearch->queryMatches(transformed_sourceMesh.getPoints());
 			// for(unsigned int i = 0; i<matches.size(); i++){
 			// 	std::cout<<i<<"th match: "<<matches[i].idx<<", weight: "<<matches[i].weight<<std::endl;
 			// }
 			pruneCorrespondences(d_transformed_normals, target_normals, matches);
+
+			// std::cout<<"d_transformed_vertex_pos"<<std::endl;
+			// for(int s = 0; s < d_transformed_vertex_pos.size(); s++){
+			// 	std::cout<<s<<"th vertex pos: "<<d_transformed_vertex_pos[s].transpose()<<std::endl;
+			// }
 
 			clock_t end = clock();
 			double elapsedSecs = double(end - begin) / CLOCKS_PER_SEC;
@@ -649,9 +935,10 @@ public:
 			// Prepare point-to-point and point-to-plane constraints.
 			ceres::Problem problem;
 			// Add residual w.r.t shape parameter
-			prepareConstraints(d_transformed_vertex_pos, target_points, target_normals, matches, bfmMeshShapeUpdate, bfmMeshExpUpdate, problem, SHAPE, TEX, EXP);
+			prepareConstraints(d_transformed_vertex_pos, BFM_triangle_list, target_points, target_normals, matches, bfmMeshShapeUpdate, bfmMeshExpUpdate, problem, &constraint_bfmManager);
 			// Add residual w.r.t expression parameter
 			// Configure options for the solver.
+			std::cout<<"Start to solve"<<std::endl;
 			ceres::Solver::Options options;
 			configureSolver(options);
 
@@ -665,11 +952,11 @@ public:
 			double *delta_coefs_tex = bfmMeshTexUpdate.getData();
 			double *delta_coefs_exp = bfmMeshExpUpdate.getData();
 
-			for (unsigned int i = 0; i < num_shapePc; i++)
+			for (unsigned int i = 0; i < _int_num_shapePc; i++)
 			{
 				estimated_coefs_shape[i] += delta_coefs_shape[i];
 				estimated_coefs_tex[i] += delta_coefs_tex[i];
-				if (i < num_expPc)
+				if (i < _int_num_expPc)
 				{
 					estimated_coefs_exp[i] += delta_coefs_exp[i];
 				}
@@ -694,7 +981,7 @@ private:
 		options.num_threads = 8;
 	}
 
-	void prepareConstraints(const std::vector<Vector3d> &sourcePoints, const std::vector<Vector3d> &targetPoints, const std::vector<Vector3d> &targetNormals, const std::vector<Match> matches, const Generic_BFMUpdate<double> &shape_BFMUpdate, const Generic_BFMUpdate<double> &exp_BFMUpdate, ceres::Problem &problem, const Parameter_set &_SHAPE, const Parameter_set &_TEX, const Parameter_set &_EXP) const
+	void prepareConstraints(const std::vector<Vector3d> &sourcePoints, const std::vector<Vector3i> &source_triangle_list, const std::vector<Vector3d> &targetPoints, const std::vector<Vector3d> &targetNormals, const std::vector<Match> matches, const Generic_BFMUpdate<double> &shape_BFMUpdate, const Generic_BFMUpdate<double> &exp_BFMUpdate, ceres::Problem &problem, Constraint_bfmManager * _constraint_bfmManager) const
 	{
 		// shape_BFMUpdate (containing the lie algebra) is to be optimized
 		/* shape_BFMUpdate will return the address of array (6 elements)
@@ -718,20 +1005,23 @@ private:
 			if (match.idx >= 0)
 			{
 				const auto &sourcePoint = sourcePoints[i];
+				// std::cout<<"source point"<<sourcePoints[i]<<std::endl;
 				const auto &targetPoint = targetPoints[match.idx];
+				// std::cout<<"target point"<<targetPoints[match.idx]<<std::endl;
 				const auto &weight = match.weight;
 
-				std::cout<<"weight: "<<match.weight<<std::endl;
+				// std::cout<<i<<"th weight: "<<match.weight<<std::endl;
+				std::cout<<i<<"point"<<std::endl;
 
-				if (!sourcePoint.allFinite() || !targetPoint.allFinite())
+				if (!sourcePoint.allFinite() || !targetPoint.allFinite() || !targetNormals[match.idx].allFinite())
 					continue;
+				
 
 				// TODO: Create a new point-to-point cost function and add it as constraint (i.e. residual block)
 				// to the Ceres problem
 
 				// PointToPointConstraint ptpc = {sourcePoint, targetPoint, weight};
-				Constraint_bfmManager constraint_bfmManager(_SHAPE, _TEX, _EXP);
-				ceres::CostFunction *cost_function = PointToPointConstraint::create(&constraint_bfmManager, sourcePoint, targetPoint, weight, i);
+				ceres::CostFunction *cost_function = PointToPointConstraint::create(_constraint_bfmManager, sourcePoint, targetPoint, weight, i);
 				problem.AddResidualBlock(cost_function, nullptr, shape_BFMUpdate.getData(), exp_BFMUpdate.getData());
 
 				// if (m_bUsePointToPlaneConstraints) {

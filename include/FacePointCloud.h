@@ -8,6 +8,7 @@ public:
 	FacePointCloud(std::vector<Vector3f> & _vertices, std::vector<Vector3i> & _triangle_lists) {
 		const auto& vertices = _vertices;
 		const auto& triangles = _triangle_lists;
+		m_triangle_lists = _triangle_lists;
 		const unsigned nVertices = vertices.size();
 		const unsigned nTriangles = triangles.size();
 
@@ -251,6 +252,14 @@ public:
 		return m_normals;
 	}
 
+	std::vector<Vector3i>& getTriangleLists(){
+		return m_triangle_lists;
+	}
+
+	const std::vector<Vector3i>& getTriangleLists() const{
+		return m_triangle_lists;
+	}
+
 	unsigned int getClosestPoint(Vector3f& p) {
 		unsigned int idx = 0;
 
@@ -283,6 +292,26 @@ public:
 
 	void setNormalMap(MatrixNormalMap & _normalMap){
 		NormalMap = _normalMap;
+	}
+
+	std::vector<Vector3f>& get_selectedVertexPos(std::vector<int> & bfm_landmarks_index_list){
+		const auto & blil = bfm_landmarks_index_list;
+		const unsigned length = blil.size();
+		m_Landmark_points.reserve(length);
+		for(int item : blil){
+			m_Landmark_points.push_back(m_points[item]);
+		}
+		return m_Landmark_points;
+	}
+
+	std::vector<Vector3f>& get_selectedNormals(std::vector<int> & bfm_landmarks_index_list){
+		const auto & blil = bfm_landmarks_index_list;
+		const unsigned length = blil.size();
+		m_Landmark_normals.reserve(length);
+		for(int item : blil){
+			m_Landmark_normals.push_back(m_normals[item]);
+		}
+		return m_Landmark_normals;
 	}
 
 
@@ -369,5 +398,8 @@ private:
 	std::vector<Vector3f> m_points;
 	std::vector<Vector3uc> m_points_color;
 	std::vector<Vector3f> m_normals;
+	std::vector<Vector3f> m_Landmark_points;
+	std::vector<Vector3f> m_Landmark_normals;
+	std::vector<Vector3i> m_triangle_lists;
 	MatrixNormalMap NormalMap;
 };

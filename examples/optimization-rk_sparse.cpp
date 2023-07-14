@@ -9,7 +9,7 @@
 #include "Eigen.h"
 #include "FacialLandmarkExtractor.h"
 #include <tuple>
-#include "Optimizer.h"
+#include "Optimizer-sparse.h"
 
 //Procrustes for pose estimation
 #include "ProcrustesAligner.h"
@@ -28,6 +28,10 @@ const std::string right_line = "--------";
 #define ps_ICP true
 #define USE_POINT_TO_PLANE true
 
+// const unsigned int global_num_shape_pcs = 199;
+// const unsigned int global_num_tex_pcs = 199;
+// const unsigned int global_num_exp_pcs = 100;
+
 // We need to be careful matrix entry index
 // Every time you should check if indices are correct, there are different way especially Opencv
 /* u => column id, v => row id
@@ -42,7 +46,7 @@ const std::string right_line = "--------";
 */
 
 int main(int argc, char *argv[])
-{
+{ 
     //init BFM
     std::cout<<left_line<<"Start init of BFM"<<right_line<<std::endl;
     BFM bfm;
@@ -52,6 +56,10 @@ int main(int argc, char *argv[])
     }else{
         std::cout<<left_line<<"Finish init of BFM-------"<<right_line<<std::endl;
     }
+
+    // if(*argv[1]!=NULL && *argv[2] != NULL && *argv[3] != NULL && *argv[4] != NULL){
+    //     set_global_variables(int(*argv[1]-'0'),  int(*argv[2]-'0'), int(*argv[3]-'0'), int(*argv[4]-'0'));
+    // }
 
     std::cout<<left_line<<"Getting landmarks from BFM..."<<right_line<<std::endl;
     //Get landmark vertex position and id mapping individually
@@ -249,6 +257,10 @@ int main(int argc, char *argv[])
     unsigned int num_truncated_landmarks = 0;
     std::cout<<"Depth of detected landmarks"<<std::endl;
 
+    // get the index list in the bfm vertex
+    std::vector<std::pair<int, int>> map_dlib_bfmLandmarks = bfm.get_bfmLandmarks_indexList();
+    std::vector<int> bfm_landmarkIndex_list;
+
     //Map 68 landmark id to id in available landmark set
     std::map<int, int> map_LMid2ALMid;
     int id_available_landmark = 0;
@@ -264,16 +276,24 @@ int main(int argc, char *argv[])
             // dlib_landmarks.erase(dlib_landmarks.begin()+i);
             available_landmark_mask[counter] = false;
             map_LMid2ALMid[counter] = -1;
+            map_dlib_bfmLandmarks[counter].second = -1;
             num_truncated_landmarks++;
         }else{
             available_landmark_mask[counter] = true;
             map_LMid2ALMid[counter] = id_available_landmark;
             id_available_landmark++;
+            bfm_landmarkIndex_list.push_back(map_dlib_bfmLandmarks[counter].second);
         }
         ++counter;
     }
 
     #ifdef DEBUG
+
+    std::cout<<"list of index of bfm mesh"<<std::endl;
+    for(const auto& [dlibIdx, bfmIdx] : map_dlib_bfmLandmarks) 
+	{
+        std::cout<<"dlibIdx, bfmIdx"<<dlibIdx<<","<<bfmIdx<<std::endl;
+    }
     std::cout<<"Map landmark id to available landmark id"<<std::endl;
     for(auto & pair : map_LMid2ALMid){
         std::cout<<pair.first<<": "<<pair.second<<std::endl;
@@ -377,7 +397,6 @@ int main(int argc, char *argv[])
     std::cout<<ps_bfm_landmarks_vertexPos.size()<<std::endl;
     std::cout<<ps_face_landmarks.size()<<std::endl;
     std::cout<<ps_dlib_landmarks.size()<<std::endl;
-
 
     unsigned int num_ps_landmark = 0;
     num_ps_landmark = ps_dlib_landmarks_vertexPos.size();
@@ -505,11 +524,11 @@ int main(int argc, char *argv[])
 
 	if(USE_POINT_TO_PLANE){
 		landmark_optimizer->usePointToPlaneConstraints(true);
-		landmark_optimizer->setNbOfIterations(1000); //10
+		landmark_optimizer->setNbOfIterations(100); //10
 	}
 	else{
 		landmark_optimizer->usePointToPlaneConstraints(false);
-		landmark_optimizer->setNbOfIterations(1000);
+		landmark_optimizer->setNbOfIterations(100);
 	}
 
     // Estimate Pose by the ceres optimizer
@@ -532,7 +551,6 @@ int main(int argc, char *argv[])
 	delete landmark_optimizer;
 
     #endif
-
 
     /* TODO: Update bfm model mean_shape and mean_expression POSE accordingly
 
@@ -566,49 +584,58 @@ int main(int argc, char *argv[])
     *                   - Depth camera intrinsic (for back-projection)
     *                       - [Matrix3f] depth_intrinsic
     */
-    // Dense only point to point
-    
+    // sparse only point to point
+
+    // list of the index which are corresponding to landmarks
+    // map_dlib_bfmLandmarks
+    // get the vertex positions which are corresponding to the landmarks
 
     // 1: get resulting vertex position and color of BFM mesh after pose estimation
     std::vector<Eigen::Vector3f> post_PoseEstimate_BFM_vertex_pos;
     std::vector<Eigen::Vector3f> post_PoseEstimate_BFM_vertex_rgb;
     std::vector<Vector3i> post_PoseEstimate_BFM_triangle_list;
 
-    _withExpression = false;
+    _withExpression = true;
 
     std::tie(post_PoseEstimate_BFM_vertex_pos, post_PoseEstimate_BFM_vertex_rgb, post_PoseEstimate_BFM_triangle_list) = bfm.writeAveBFMmesh("../output/pose_poseEstimation_bfmAveFace.ply", _withExpression);
 
-    // register source mesh
-    FacePointCloud sourceMesh{post_PoseEstimate_BFM_vertex_pos, post_PoseEstimate_BFM_triangle_list};
+    FacePointCloud PostPE_bfmMesh{post_PoseEstimate_BFM_vertex_pos, post_PoseEstimate_BFM_triangle_list};
 
-    // register target mesh
-    // configuration is described above
-    FacePointCloud targetMesh{mat_rgb, depth_map, depth_intrinsics, depth_extrinsics, depth_width, depth_height, downsampleFactor, maxDistance, maxDepth, minDepth};
+    std::vector<Eigen::Vector3f> postPE_bfm_landmarks_points = PostPE_bfmMesh.get_selectedVertexPos(bfm_landmarkIndex_list);
+    std::vector<Eigen::Vector3f> postPE_bfm_landmarks_normals = PostPE_bfmMesh.get_selectedNormals(bfm_landmarkIndex_list);
+
+    // set source mesh
+    FacePointCloud sourceMesh{postPE_bfm_landmarks_points, ps_bfm_landmark_triangleIdLists};
+    // target source meshestimatePose
+    FacePointCloud targetMesh{ps_dlib_landmarks_vertexPos, ps_dlib_landmark_triangleIdLists};
+    
+    #if DEBUG
+        for(unsigned int i = 0; i < postPE_bfm_landmarks_points.size(); i++){
+            std::cout<<"landmark pos: "<<postPE_bfm_landmarks_points[i].transpose()<<std::endl;
+            std::cout<<"landmark normal: "<<postPE_bfm_landmarks_normals[i].transpose()<<std::endl;
+        }
+    #endif
 
     ICPOptimizer* optimizer = nullptr;
 
     optimizer = new CeresICPOptimizer();
 
-    // unsigned int num_shape_pcs = 1;
-    // unsigned int num_tex_pcs = 1;
-    // unsigned int num_exp_pcs = 1;
-
     optimizer->setMatchingMaxDistance(1e3);
     optimizer->usePointToPlaneConstraints(false);
-    optimizer->setNbOfIterations(10);
+    optimizer->setNbOfIterations(50);
 
-    std::vector<double> _initial_coefs_shape(num_shape_pcs);
-    std::vector<double> _initial_coefs_tex(num_tex_pcs);
-    std::vector<double> _initial_coefs_exp(num_exp_pcs);
+    std::vector<double> _initial_coefs_shape(global_num_shape_pcs);
+    std::vector<double> _initial_coefs_tex(global_num_tex_pcs);
+    std::vector<double> _initial_coefs_exp(global_num_exp_pcs);
 
     std::fill(_initial_coefs_shape.begin(), _initial_coefs_shape.end(), 0.0);
     std::fill(_initial_coefs_tex.begin(), _initial_coefs_tex.end(), 0.0);
     std::fill(_initial_coefs_exp.begin(), _initial_coefs_exp.end(), 0.0);
 
-    std::vector<double> estimated_coefs_shape(num_shape_pcs);
-    std::vector<double> estimated_coefs_tex(num_tex_pcs);
-    std::vector<double> estimated_coefs_exp(num_exp_pcs);
-    std::tie(estimated_coefs_shape, estimated_coefs_tex, estimated_coefs_exp) = optimizer->estimateParams(sourceMesh, targetMesh, SHAPE, TEX, EXP, _initial_coefs_shape, _initial_coefs_tex, _initial_coefs_exp, bfm);
+    std::vector<double> estimated_coefs_shape(global_num_shape_pcs);
+    std::vector<double> estimated_coefs_tex(global_num_tex_pcs);
+    std::vector<double> estimated_coefs_exp(global_num_exp_pcs);
+    std::tie(estimated_coefs_shape, estimated_coefs_tex, estimated_coefs_exp) = optimizer->estimateParams(sourceMesh, targetMesh, SHAPE, TEX, EXP, _initial_coefs_shape, _initial_coefs_tex, _initial_coefs_exp, bfm, bfm_landmarkIndex_list);
     
     //apply parameters to get resulting mesh
     // TODO: get mesh
@@ -680,7 +707,9 @@ int main(int argc, char *argv[])
     std::vector<double> _coef_shape = estimated_coefs_shape;
     // Coefficient for texture (199dim)
     // std::vector<double> _coef_tex = {-0.939461, 0.807407, 0.0418675, -0.218482, 0.0777038, 0.0646725, 0.132211, 0.39221, -0.275034, 0.366957, 0.103293, -0.240571, 0.516328, -0.376104, 0.485397, -0.231068, -0.487349, 0.470209, -0.789866, 0.0262927, -0.424657, 0.693524, 0.0495422, -1.24146, -0.067015, -0.817428, 0.131106, 0.536999, 0.400566, -1.11455, -0.738186, 0.609291, -0.14634, -0.00507975, -0.0104612, -0.577561, -0.284545, -0.00201202, -0.338924, -0.532313, -1.00337, 0.808154, 0.0622376, 0.601659, 0.395609, -1.00979, -0.569426, -0.168853, 0.00367227, -0.147915, 0.939562, -0.13469, 0.0402932, 0.723185, 0.784846, -0.348009, -0.226573, -0.263135, -0.222904, 0.190179, 0.220754, 0.402016, -0.648363, 0.760669, 0.592709, -0.293168, -0.0339384, -0.0523662, -0.0152403, -0.685043, 0.386356, -0.64661, -0.223204, -0.720214, 0.106663, -0.226485, 0.943473, -0.399918, -1.05839, -0.280164, -0.548844, 0.500835, -0.46445, -0.221159, -0.272483, 0.541268, -0.180583, -0.335298, -0.753914, -0.945244, -0.51114, -0.755218, -0.578613, -0.00774594, -0.303722, -0.0712457, -0.0139913, 0.209496, 1.16992, 0.397189, 0.716339, 0.325273, -1.1157, -0.82799, -0.517678, -1.24194, 0.832834, 0.741728, -0.227121, -0.769922, 0.591518, -0.240251, 0.104513, 0.681891, 0.884008, -0.118074, -0.460336, 0.309614, 0.198575, -0.0223547, 0.621338, 0.334244, -0.00417056, 0.570264, -0.747836, 0.286313, -0.872641, 0.517807, 1.20792, 0.224479, -0.123916, -0.79099, -0.160249, 0.847176, -0.0720962, -0.586694, -0.0337559, -0.656616, -0.0854957, -1.25917, 0.676657, -0.0300606, -0.243738, 0.373281, 1.09505, -0.352706, 1.29842, -0.28218, 0.116789, -0.917646, -0.224453, -0.85551, -0.147545, 0.221046, 0.498491, -0.450215, 0.00495127, -0.912007, -0.194967, -0.248033, -0.74021, -0.275011, 0.386151, 0.0129647, -0.760389, -0.632965, 0.395228, -0.0788702, 0.777731, 0.0283813, 1.14026, -0.228086, 1.43991, -0.162239, 0.163396, 0.289925, 0.730762, -0.266334, -0.567568, -0.0414544, -0.165757, -1.34601, 0.138388, -0.480812, -0.995689, 0.929929, 0.0384844, 0.997379, 0.18316, -0.296618, -0.820188, -0.0731485, -0.384338, 0.931458, 0.297943, -0.744139, -0.257288, -0.0732985, 0.0552113};
-    std::vector<double> _coef_tex = estimated_coefs_tex;
+    // std::vector<double> _coef_tex = estimated_coefs_tex;
+    std::vector<double> _coef_tex(global_num_tex_pcs);
+    std::fill(_coef_tex.begin(), _coef_tex.end(), 0.0);
     // Coefficient for expression (100dim)
     // std::vector<double> _coef_exp = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     std::vector<double> _coef_exp = estimated_coefs_exp;
@@ -756,24 +785,24 @@ int main(int argc, char *argv[])
     //Get face mesh (.ply) and its components given parameters
     //_withExpression = True; you will get average mesh with random expression, otherwise, with a neutral expression
     
-    std::vector<Eigen::Vector3f> result_vertex_pos;
-    std::vector<Eigen::Vector3f> result_vertex_rgb;
-    std::vector<Vector3i> result_triangle_list;
+    // std::vector<Eigen::Vector3f> result_vertex_pos;
+    // std::vector<Eigen::Vector3f> result_vertex_rgb;
+    // std::vector<Vector3i> result_triangle_list;
 
-    std::tie(result_vertex_pos, result_vertex_rgb, result_triangle_list) = bfm.writeBFMmesh("../output/gen_mesh_test1.ply", _coef_shape, _coef_tex, _coef_exp ,_withExpression);
+    // std::tie(result_vertex_pos, result_vertex_rgb, result_triangle_list) = bfm.writeBFMmesh("../output/gen_mesh_test1.ply", _coef_shape, _coef_tex, _coef_exp ,_withExpression);
 
-    std::cout<<"Result of mesh"<<std::endl;
+    // std::cout<<"Result of mesh"<<std::endl;
 
-    std::cout<<left_line<<"Number of vertex: "<<result_vertex_pos.size()<<right_line<<std::endl;
-    for(unsigned int i = 0; i < result_vertex_pos.size(); i++){
-        std::cout<<i<<result_vertex_pos[i].x()<<", "<<result_vertex_pos[i].y()<<", "<<result_vertex_pos[i].z()<<std::endl;
-        std::cout<<i<<result_vertex_rgb[i].x()<<", "<<result_vertex_rgb[i].y()<<", "<<result_vertex_rgb[i].z()<<std::endl;
-    }
+    // std::cout<<left_line<<"Number of vertex: "<<result_vertex_pos.size()<<right_line<<std::endl;
+    // for(unsigned int i = 0; i < result_vertex_pos.size(); i++){
+    //     std::cout<<i<<result_vertex_pos[i].x()<<", "<<result_vertex_pos[i].y()<<", "<<result_vertex_pos[i].z()<<std::endl;
+    //     std::cout<<i<<result_vertex_rgb[i].x()<<", "<<result_vertex_rgb[i].y()<<", "<<result_vertex_rgb[i].z()<<std::endl;
+    // }
 
-    std::cout<<left_line<<"Number of triangle face: "<<result_triangle_list.size()<<right_line<<std::endl;
-    for(unsigned int i = 0; i < result_triangle_list.size(); i++){
-        std::cout<<i<<"th triangle: ("<<result_triangle_list[i].x()<<", "<<result_triangle_list[i].y()<<", "<<result_triangle_list[i].z()<<")"<<std::endl;
-    }
+    // std::cout<<left_line<<"Number of triangle face: "<<result_triangle_list.size()<<right_line<<std::endl;
+    // for(unsigned int i = 0; i < result_triangle_list.size(); i++){
+    //     std::cout<<i<<"th triangle: ("<<result_triangle_list[i].x()<<", "<<result_triangle_list[i].y()<<", "<<result_triangle_list[i].z()<<")"<<std::endl;
+    // }
 
     // BfmOptimizer bfm_optimizer;
 

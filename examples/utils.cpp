@@ -418,11 +418,11 @@ int main(int argc, char *argv[])
     */
 
     //update the mean of vertex position in shape and expression in bfm_manager_first
-    bfm.updatePose_bfmManager(Procrustes_estimatedPose);
+    bfm.updatePose_bfmManager(Procrustes_estimatedPose, SHAPE, EXP, TEX);
 
     //update the parameter set as well
-    bfm.update_Pose_ParameterSet(SHAPE, Procrustes_estimatedPose, DEBUG);
-    bfm.update_Pose_ParameterSet(EXP, Procrustes_estimatedPose, DEBUG);
+    // bfm.update_Pose_ParameterSet(SHAPE, Procrustes_estimatedPose, DEBUG);
+    // bfm.update_Pose_ParameterSet(EXP, Procrustes_estimatedPose, DEBUG);
 
     //Write BFM landmarks point cloud which is transformed only by Procrustes
     std::cout<<"Write .ply given only Procrustes transformed BFM landmarks"<<std::endl;
@@ -537,11 +537,11 @@ int main(int argc, char *argv[])
     */
 
     //update the mean of vertex position in shape and expression in bfm_manager_first
-    bfm.updatePose_bfmManager(ICP_estimatedPose);
+    bfm.updatePose_bfmManager(ICP_estimatedPose, SHAPE, EXP, TEX);
 
     //update the parameter set as well
-    bfm.update_Pose_ParameterSet(SHAPE, ICP_estimatedPose, DEBUG);
-    bfm.update_Pose_ParameterSet(EXP, ICP_estimatedPose, DEBUG);
+    // bfm.update_Pose_ParameterSet(SHAPE, ICP_estimatedPose, DEBUG);
+    // bfm.update_Pose_ParameterSet(EXP, ICP_estimatedPose, DEBUG);
 
 
     /* TODO: Parameter Estimation

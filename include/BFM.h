@@ -392,6 +392,9 @@ public:
             means(3*i) = _transformed_point.x(); 
             means(3*i + 1) = _transformed_point.y(); 
             means(3*i + 2) = _transformed_point.z(); 
+            ps.mean(3*i) = means(3*i);
+            ps.mean(3*i+1) = means(3*i+1);
+            ps.mean(3*i+2) = means(3*i+2);
             if(_debug){
                 std::cout<<"After: "<<_transformed_point.transpose()<<std::endl;
             }
@@ -400,9 +403,20 @@ public:
         std::cout<<"done"<<std::endl;
     }
 
-    void updatePose_bfmManager(Eigen::Matrix4f & SE3){
+    void updatePose_bfmManager(Eigen::Matrix4f & SE3, Parameter_set & _SHAPE, Parameter_set & _EXP, Parameter_set & _TEX){
         BFM_Manager.update_ShapeMu(SE3);
-        BFM_Manager.update_ExprMu(SE3);
+        // BFM_Manager.update_ExprMu(SE3);
+        BFM_Manager.GetShapeComponents(SHAPE.mean, SHAPE.variance, SHAPE.pc);
+        BFM_Manager.GetTexComponents(TEX.mean, TEX.variance, TEX.pc);
+        BFM_Manager.GetExpComponents(EXP.mean, EXP.variance, EXP.pc);
+
+        SHAPE.num_vertices = num_vertices;
+        TEX.num_vertices = num_vertices;
+        EXP.num_vertices = num_vertices;
+
+        _SHAPE = SHAPE;
+        _EXP = EXP;
+        _TEX = TEX;
     }
 
     void apply_SE3_to_BFMLandmarks(Eigen::Matrix4f & estimate_pose, std::vector<Vector3f> & _bfm_landmarks_PosList, std::vector<Vector3f> & transformed_bfm_landmarks, bool _debug){
@@ -430,7 +444,12 @@ public:
 
     }
 
-     BfmManager * getBfmmanager(){
+    std::vector<std::pair<int, int>> get_bfmLandmarks_indexList(){
+        std::vector<std::pair<int, int>> index_list = BFM_Manager.getMapLandmarkIndices();
+        return index_list;
+    }
+
+    BfmManager * getBfmmanager(){
         return &BFM_Manager;
     }
 
