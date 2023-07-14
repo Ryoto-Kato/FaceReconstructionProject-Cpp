@@ -9,7 +9,7 @@
 #include "Eigen.h"
 #include "FacialLandmarkExtractor.h"
 #include <tuple>
-#include "Optimizer.h"
+#include "Optimizer_AutoDiff.h"
 
 //Procrustes for pose estimation
 #include "ProcrustesAligner.h"
@@ -68,15 +68,15 @@ int main(int argc, char *argv[])
     std::cout<<"Result of mesh"<<std::endl;
 
     std::cout<<left_line<<"Number of vertex: "<<averageBFM_vertex_pos.size()<<right_line<<std::endl;
-    for(unsigned int i = 0; i < averageBFM_vertex_pos.size(); i++){
-        std::cout<<i<<"th position: ("<<averageBFM_vertex_pos[i].x()<<", "<<averageBFM_vertex_pos[i].y()<<", "<<averageBFM_vertex_pos[i].z()<<")"<<std::endl;
-        std::cout<<i<<"th color   : ("<<averageBFM_vertex_rgb[i].x()<<", "<<averageBFM_vertex_rgb[i].y()<<", "<<averageBFM_vertex_rgb[i].z()<<")"<<std::endl;
-    }
+    // for(unsigned int i = 0; i < averageBFM_vertex_pos.size(); i++){
+    //     std::cout<<i<<"th position: ("<<averageBFM_vertex_pos[i].x()<<", "<<averageBFM_vertex_pos[i].y()<<", "<<averageBFM_vertex_pos[i].z()<<")"<<std::endl;
+    //     std::cout<<i<<"th color   : ("<<averageBFM_vertex_rgb[i].x()<<", "<<averageBFM_vertex_rgb[i].y()<<", "<<averageBFM_vertex_rgb[i].z()<<")"<<std::endl;
+    // }
 
     std::cout<<left_line<<"Number of triangle face: "<<averageBFM_triangle_list.size()<<right_line<<std::endl;
-    for(unsigned int i = 0; i < averageBFM_triangle_list.size(); i++){
-        std::cout<<i<<"th triangle: ("<<averageBFM_triangle_list[i].x()<<", "<<averageBFM_triangle_list[i].y()<<", "<<averageBFM_triangle_list[i].z()<<")"<<std::endl;
-    }
+    // for(unsigned int i = 0; i < averageBFM_triangle_list.size(); i++){
+    //     std::cout<<i<<"th triangle: ("<<averageBFM_triangle_list[i].x()<<", "<<averageBFM_triangle_list[i].y()<<", "<<averageBFM_triangle_list[i].z()<<")"<<std::endl;
+    // }
 
     #ifdef DEBUG
         // check indivisually obtained landmark pair and vertex positions
@@ -517,7 +517,6 @@ int main(int argc, char *argv[])
     std::cout<<"Write .ply given Procrustes/ICP transformed BFM landmarks"<<std::endl;
     FacePointCloud::writeFacePointCloudPly("../output/transformed_ProcrustesAndICP_bfm_landmarks.ply", transformed_ProcrustesAndICP_bfm_landmarks_vertexPos);
 
-    #endif
 
 
     /* TODO: Update bfm model mean_shape and mean_expression POSE accordingly
@@ -531,6 +530,7 @@ int main(int argc, char *argv[])
     bfm.update_Pose_ParameterSet(SHAPE, ICP_estimatedPose, DEBUG);
     bfm.update_Pose_ParameterSet(EXP, ICP_estimatedPose, DEBUG);
 
+    #endif
 
     /* TODO: Parameter Estimation
     *   Energy term
@@ -684,7 +684,7 @@ int main(int argc, char *argv[])
 
     //Get face mesh (.ply) and its components given parameters
     //_withExpression = True; you will get average mesh with random expression, otherwise, with a neutral expression
-    
+
     std::vector<Eigen::Vector3f> result_vertex_pos;
     std::vector<Eigen::Vector3f> result_vertex_rgb;
     std::vector<Vector3i> result_triangle_list;
@@ -694,23 +694,24 @@ int main(int argc, char *argv[])
     std::cout<<"Result of mesh"<<std::endl;
 
     std::cout<<left_line<<"Number of vertex: "<<result_vertex_pos.size()<<right_line<<std::endl;
-    for(unsigned int i = 0; i < result_vertex_pos.size(); i++){
-        std::cout<<i<<"th position: ("<<result_vertex_pos[i].x()<<", "<<result_vertex_pos[i].y()<<", "<<result_vertex_pos[i].z()<<")"<<std::endl;
-        std::cout<<i<<"th color   : ("<<result_vertex_rgb[i].x()<<", "<<result_vertex_rgb[i].y()<<", "<<result_vertex_rgb[i].z()<<")"<<std::endl;
-    }
+    // for(unsigned int i = 0; i < result_vertex_pos.size(); i++){
+    //     std::cout<<i<<"th position: ("<<result_vertex_pos[i].x()<<", "<<result_vertex_pos[i].y()<<", "<<result_vertex_pos[i].z()<<")"<<std::endl;
+    //     std::cout<<i<<"th color   : ("<<result_vertex_rgb[i].x()<<", "<<result_vertex_rgb[i].y()<<", "<<result_vertex_rgb[i].z()<<")"<<std::endl;
+    // }
 
     std::cout<<left_line<<"Number of triangle face: "<<result_triangle_list.size()<<right_line<<std::endl;
-    for(unsigned int i = 0; i < result_triangle_list.size(); i++){
-        std::cout<<i<<"th triangle: ("<<result_triangle_list[i].x()<<", "<<result_triangle_list[i].y()<<", "<<result_triangle_list[i].z()<<")"<<std::endl;
-    }
+    // for(unsigned int i = 0; i < result_triangle_list.size(); i++){
+    //     std::cout<<i<<"th triangle: ("<<result_triangle_list[i].x()<<", "<<result_triangle_list[i].y()<<", "<<result_triangle_list[i].z()<<")"<<std::endl;
+    // }
 
-<<<<<<< HEAD
     BfmOptimizer bfm_optimizer;
-=======
-    // BfmOptimizer bfm_optimizer;
->>>>>>> 739ca0e1584de38992c7bb13643ea1e6217d4f03
+    bfm_optimizer.estimateParameters(&bfm, depth_map, depth_intrinsics, depth_extrinsics);
 
+    bfm.writeBFMmesh("../output/gen_mesh_after_param_est.ply", _coef_shape, _coef_tex, _coef_exp ,_withExpression);
+
+    #if ps_ICP == true
 	delete landmark_optimizer;
+    #endif
 
 	return 0;
 }
