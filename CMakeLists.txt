@@ -196,11 +196,18 @@ if(OPTIMIZATION_EXAMPLE)
    target_link_libraries(optimization_example face_reconstruction)
 endif()
 
-OPTION(OPTIMIZATION_EXAMPLE_SPARSE "Ceres optimizer for sparse." ON)
+OPTION(OPTIMIZATION_EXAMPLE_SPARSE "Ceres optimizer for sparse." OFF)
 if(OPTIMIZATION_EXAMPLE_SPARSE)
    add_executable(optimization_example_sparse examples/optimization-rk_sparse.cpp)
    target_link_libraries(optimization_example_sparse face_reconstruction)
 endif()
+
+OPTION(OPTIMIZATION_EXAMPLE_ALL "Ceres optimizer for sparse." ON)
+if(OPTIMIZATION_EXAMPLE_ALL)
+   add_executable(optimization_example_all examples/optimization-rk_ALL.cpp)
+   target_link_libraries(optimization_example_all face_reconstruction)
+endif()
+
 
 if(WIN32)
     # Visual Studio properties
