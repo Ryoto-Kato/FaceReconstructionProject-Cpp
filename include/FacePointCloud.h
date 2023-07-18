@@ -260,6 +260,14 @@ public:
 		return m_triangle_lists;
 	}
 
+	std::vector<Vector3uc> & getColors(){
+		return m_points_color;
+	}
+
+	const std::vector<Vector3uc> & getColors() const{
+		return m_points_color;
+	}
+
 	unsigned int getClosestPoint(Vector3f& p) {
 		unsigned int idx = 0;
 
