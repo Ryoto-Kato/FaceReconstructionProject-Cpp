@@ -665,7 +665,7 @@ int main(int argc, char *argv[])
     optimizer = new CeresICPOptimizer();
 
     optimizer->setMatchingMaxDistance_sparse(1e3);
-    optimizer->setMatchingMaxDistance_dense(5);
+    optimizer->setMatchingMaxDistance_dense(1e1);
     optimizer->usePointToPlaneConstraints(false);
     optimizer->setNbOfIterations(10);
 

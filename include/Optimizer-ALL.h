@@ -18,16 +18,16 @@
 #include <tuple>
 #include <set>
 
-const unsigned int global_num_shape_pcs = 100; //199 //50
+const unsigned int global_num_shape_pcs = 50; //199 //50
 const unsigned int global_num_tex_pcs = 50; //199  //50
-const unsigned int global_num_exp_pcs = 75; //100  //50
+const unsigned int global_num_exp_pcs = 65; //100  //50
 const unsigned int global_num_vertices = 53149;
 const double global_reg_lambda = (1.0)*1e1;
-const double global_regSHAPE_lambda = 5e2; //1e6
-const double global_regEXP_lambda = 1e2;  // 5
+const double global_regSHAPE_lambda = 1e2; //1e6
+const double global_regEXP_lambda = 1e1;  // 5
 const double global_regTEX_lambda = 1.0; // 1.0
-const double global_sparse_lambda = 1e1; // 1.0
-const double global_dense_lambda = 5; // 1.0
+const double global_sparse_lambda = 5; // 1.0
+const double global_dense_lambda = 2; // 1.0
 const double global_color_lambda = 4e1; // 1.0
 
 void set_global_variables(int i0, int i1, int i2, int i3){
