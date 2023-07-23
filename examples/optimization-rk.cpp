@@ -24,7 +24,7 @@ const std::string left_line = "--------";
 const std::string right_line = "--------";
 
 #define DEBUG true
-#define ONLY_SELECTED_LANDMARKS false
+#define ONLY_SELECTED_LANDMARKS true
 #define ps_ICP true
 #define USE_POINT_TO_PLANE true
 

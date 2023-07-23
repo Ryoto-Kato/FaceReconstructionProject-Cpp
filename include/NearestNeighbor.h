@@ -18,6 +18,11 @@ public:
 
 	virtual void buildIndex(const std::vector<Eigen::Vector3f>& targetPoints) = 0;
 	virtual std::vector<Match> queryMatches(const std::vector<Vector3f>& transformedPoints) = 0;
+	virtual inline float get_aveDist() = 0;
+
+	virtual inline float get_measuredMaxDist() = 0;
+	virtual inline float get_measuredMinDist() = 0;
+	virtual inline std::vector<float> get_measuredDists() = 0;
 
 protected:
 	float m_maxDistance;
@@ -81,6 +86,7 @@ private:
  */
 class NearestNeighborSearchFlann : public NearestNeighborSearch {
 public:
+
 	NearestNeighborSearchFlann() :
 		NearestNeighborSearch(),
 		m_nTrees{ 1 },
@@ -144,15 +150,40 @@ public:
 		const unsigned nMatches = transformedPoints.size();
 		std::vector<Match> matches;
 		matches.reserve(nMatches);
+
+		float average_dist = 0;
+		int counter_valid_point = 0;
+
+		float min_dist = 1e10;
+		float max_dist = (-1)*1e10;
+		measuredDists.clear();
+		measuredDists.reserve(nMatches);
+
 		// std::cout<<"m_maxDistance: "<<m_maxDistance<<std::endl;
 		for (int i = 0; i < nMatches; ++i) {
             auto dist = *distances[i];
 			// std::cout<<i<<"th match distance: "<<dist<<std::endl;
-			if (dist <= m_maxDistance)
+			if (dist <= m_maxDistance){
 				matches.push_back(Match{ *indices[i], 1.f });
-			else
+				average_dist+=dist;
+				counter_valid_point++;
+				if(dist <= min_dist){
+					min_dist = dist;
+				}
+				
+				if(dist >= max_dist){
+					max_dist = dist;
+				}
+			}
+			else{
 				matches.push_back(Match{ -1, 0.f });
+			}
+			measuredDists.push_back(float(dist));
 		}
+		
+		measuredMin = min_dist;			
+		measuredMax = max_dist;
+		ave_dist = average_dist/counter_valid_point;
 
 		// Release the memory.
 		delete[] query.ptr();
@@ -162,8 +193,28 @@ public:
 		return matches;
 	}
 
+	inline float get_aveDist(){
+		return ave_dist;
+	}
+
+	inline float get_measuredMaxDist(){
+		return measuredMax;
+	}
+
+	inline float get_measuredMinDist(){
+		return measuredMin;
+	}
+
+	inline std::vector<float> get_measuredDists(){
+		return measuredDists;
+	}
+
 private:
 	int m_nTrees;
 	flann::Index<flann::L2<float>>* m_index;
 	float* m_flatPoints;
+	float ave_dist;
+	float measuredMax;
+	float measuredMin;
+	std::vector<float> measuredDists;
 };

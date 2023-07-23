@@ -269,7 +269,7 @@ public:
         unsigned int counter = 0;
         for(const auto& [dlibIdx, bfmIdx] : m_mapLandmark_ids){
             //print
-        	std::cout<<dlibIdx<<" "<<bfmIdx<<std::endl;
+        	// std::cout<<dlibIdx<<" "<<bfmIdx<<std::endl;
             Landmarks l;
             l.id = counter;
             l.dlib_id = dlibIdx;

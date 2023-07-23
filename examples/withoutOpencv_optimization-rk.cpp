@@ -1,4 +1,4 @@
-/*
+Plans for next week/*
  * Combining the bfm_init and Pose Estimation part
 */
 #include <algorithm>

@@ -381,6 +381,9 @@ public:
 
 			//matches contains the correspondences
 			auto matches = m_nearestNeighborSearch->queryMatches(transformedPoints);
+
+			std::cout<<"Average Landmarks distance [mm] of sparse: "<<m_nearestNeighborSearch->get_aveDist()<<std::endl;
+
 			pruneCorrespondences(transformedNormals, target.getNormals(), matches);
 
 			clock_t end = clock();

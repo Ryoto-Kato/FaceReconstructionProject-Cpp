@@ -18,6 +18,7 @@ public:
 
 	virtual void buildIndex(const std::vector<Eigen::Vector3f>& targetPoints) = 0;
 	virtual std::vector<Match_ps> queryMatches(const std::vector<Vector3f>& transformedPoints) = 0;
+	virtual inline double get_aveDist() = 0;
 
 protected:
 	float m_maxDistance;
@@ -144,12 +145,22 @@ public:
 		std::vector<Match_ps> matches;
 		matches.reserve(nMatches);
 
+		double average_dist = 0;
+		int counter_valid_point = 0;
+
 		for (int i = 0; i < nMatches; ++i) {
-			if (*distances[i] <= m_maxDistance)
+            auto dist = *distances[i];
+			if (dist <= m_maxDistance){
 				matches.push_back(Match_ps{ *indices[i], 1.f });
-			else
+				average_dist+=dist;
+				counter_valid_point++;
+			}
+			else{
 				matches.push_back(Match_ps{ -1, 0.f });
+			}
 		}
+
+		ave_dist = average_dist/counter_valid_point;
 
 		// Release the memory.
 		delete[] query.ptr();
@@ -159,10 +170,15 @@ public:
 		return matches;
 	}
 
+	inline double get_aveDist(){
+		return ave_dist;
+	}
+
 private:
 	int m_nTrees;
 	flann::Index<flann::L2<float>>* m_index;
 	float* m_flatPoints;
+	double ave_dist;
 };
 
 
