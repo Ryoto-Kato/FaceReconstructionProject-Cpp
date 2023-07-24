@@ -176,37 +176,37 @@ BfmManager::BfmManager(
 	// 		m_bIsTexStd = false;
 	// }
 
-	LOG(INFO) << "Infomation load done.\n";
+	//LOG(INFO) << "Infomation load done.\n";
 	cout<< "Infomation load done.\n";
 
-	LOG(INFO) << "*******************************************";
-	LOG(INFO) << "*********** Load Basel Face Model *********";
-	LOG(INFO) << "*******************************************";
-	LOG(INFO) << "Version:\t\t\t\t" << m_strVersion;
-	LOG(INFO) << "Number of vertices:\t\t\t" << m_nVertices;
-	LOG(INFO) << "Number of faces:\t\t\t" << m_nFaces;
-	LOG(INFO) << "Number of shape PCs:\t\t\t" << m_nIdPcs;
-	LOG(INFO) << "Number of texture PCs:\t\t\t" << m_nIdPcs;
-	if(m_strVersion == "2009")
-		LOG(INFO) << "Number of expression PCs:\t\tNone";
-	else
-		LOG(INFO) << "Number of expression PCs:\t\t" << m_nExprPcs;
-	if(m_bIsTexStd)
-		LOG(INFO) << "Texture range:\t\t\t\t0.0~1.0";
-	else
-		LOG(INFO) << "Texture range:\t\t\t\t0~255";
-	LOG(INFO) << "Number of dlib landmarks:\t\t68";
-	if(m_bUseLandmark)
-	{
-		LOG(INFO) << "Number of custom landmarks:\t\t" << m_mapLandmarkIndices.size();
-		LOG(INFO) << "Corresponding between dlib and custom:\t" << m_strLandmarkIdxPath;
-	}
-	else
-		LOG(INFO) << "Number of custom landmarks:\tNone";
-	LOG(INFO) << "Camera intrinsic parameters (fx, fy, cx, cy):";
-	LOG(INFO) << "\t" << m_aIntParams[0] << "\t" << m_aIntParams[1]
-			  << "\t" << m_aIntParams[2] << "\t" << m_aIntParams[3];
-	LOG(INFO) << "\n";
+	//LOG(INFO) << "*******************************************";
+	//LOG(INFO) << "*********** Load Basel Face Model *********";
+	//LOG(INFO) << "*******************************************";
+	//LOG(INFO) << "Version:\t\t\t\t" << m_strVersion;
+	//LOG(INFO) << "Number of vertices:\t\t\t" << m_nVertices;
+	//LOG(INFO) << "Number of faces:\t\t\t" << m_nFaces;
+	//LOG(INFO) << "Number of shape PCs:\t\t\t" << m_nIdPcs;
+	//LOG(INFO) << "Number of texture PCs:\t\t\t" << m_nIdPcs;
+	// if(m_strVersion == "2009")
+	// 	//LOG(INFO) << "Number of expression PCs:\t\tNone";
+	// else
+		//LOG(INFO) << "Number of expression PCs:\t\t" << m_nExprPcs;
+	// if(m_bIsTexStd)
+	// 	//LOG(INFO) << "Texture range:\t\t\t\t0.0~1.0";
+	// else
+	// 	//LOG(INFO) << "Texture range:\t\t\t\t0~255";
+	// //LOG(INFO)  << "Number of dlib landmarks:\t\t68";
+	// if(m_bUseLandmark)
+	// {
+	// 	//LOG(INFO)  << "Number of custom landmarks:\t\t" << m_mapLandmarkIndices.size();
+	// 	//LOG(INFO)  << "Corresponding between dlib and custom:\t" << m_strLandmarkIdxPath;
+	// }
+	// else
+	// 	//LOG(INFO)  << "Number of custom landmarks:\tNone";
+	// //LOG(INFO)  << "Camera intrinsic parameters (fx, fy, cx, cy):";
+	// //LOG(INFO)  << "\t" << m_aIntParams[0] << "\t" << m_aIntParams[1]
+	// 		  << "\t" << m_aIntParams[2] << "\t" << m_aIntParams[3];
+	// //LOG(INFO)  << "\n";
 
 	this->genAvgFace();
 	this->genLandmarkBlendshape();
@@ -215,7 +215,7 @@ BfmManager::BfmManager(
 
 void BfmManager::alloc() 
 {
-	LOG(INFO) << "Allocate memory for model.";
+	//LOG(INFO)  << "Allocate memory for model.";
 	std::cout<<"Shape Coeff Dim: "<<m_nIdPcs<<std::endl;
 	m_aShapeCoef = new double[m_nIdPcs];
 	std::cout<<"	m_aShapeCoef: "<<m_aExtParams[m_nIdPcs-1]<<std::endl;
@@ -267,7 +267,7 @@ void BfmManager::alloc()
 
 bool BfmManager::load() 
 {
-	LOG(INFO) << "Load model from disk.";
+	//LOG(INFO)  << "Load model from disk.";
 
 	try
 	{
@@ -387,10 +387,10 @@ void BfmManager::extractLandmarks()
 
 void BfmManager::genRndFace(double dScale) 
 {
-	if(dScale == 0.0)
-		LOG(INFO) << "Generate average face";
-	else
-		LOG(INFO) << "Generate random face (using the same scale)";
+	// if(dScale == 0.0)
+	// 	//LOG(INFO)  << "Generate average face";
+	// else
+		//LOG(INFO)  << "Generate random face (using the same scale)";
 
 	/*
 	m_nIdPcs = Identity principal components = 199
@@ -414,7 +414,7 @@ void BfmManager::genRndFace(double dScale)
 
 void BfmManager::genRndFace(double dShapeScale, double dTexScale, double dExprScale) 
 {
-	LOG(INFO) << "Generate random face (using different scales)";
+	//LOG(INFO)  << "Generate random face (using different scales)";
 	m_aShapeCoef = bfm_utils::randn(m_nIdPcs, dShapeScale);
 	m_aTexCoef   = bfm_utils::randn(m_nIdPcs, dTexScale);
 	if(m_strVersion != "2009")
@@ -444,7 +444,7 @@ int inline float2color(const float & _f_color){
 
 void BfmManager::genFace() 
 {
-	LOG(INFO) <<"Generate face with shape and expression coefficients";
+	//LOG(INFO)  <<"Generate face with shape and expression coefficients";
 
 	
 
@@ -467,7 +467,7 @@ void BfmManager::genFace()
 
 void BfmManager::genLandmarkBlendshape()  
 {
-	LOG(INFO) <<"Generate landmarks with shape and expression coefficients";
+	//LOG(INFO)  <<"Generate landmarks with shape and expression coefficients";
 
 	m_vecLandmarkCurrentShape = this->coef2Object(m_aShapeCoef, m_vecLandmarkShapeMu, m_matLandmarkShapePc, m_vecShapeEv, m_nIdPcs);
 	if(m_strVersion != "2009")
@@ -482,7 +482,7 @@ void BfmManager::genLandmarkBlendshape()
 
 void BfmManager::genRMat() 
 {
-	LOG(INFO) <<"Generate rotation matrix.";
+	//LOG(INFO)  <<"Generate rotation matrix.";
 
 	const double &roll   = m_aExtParams[0];
 	const double &yaw    = m_aExtParams[1];
@@ -493,7 +493,7 @@ void BfmManager::genRMat()
 
 void BfmManager::genTVec()
 {
-	LOG(INFO) <<"Generate translation vector.";	
+	//LOG(INFO)  <<"Generate translation vector.";	
 
 	const double &tx = m_aExtParams[3];
 	const double &ty = m_aExtParams[4];
@@ -511,7 +511,7 @@ void BfmManager::genTransMat()
 
 void BfmManager::genExtParams()
 {
-	LOG(INFO) <<"Generate external paramter.";
+	//LOG(INFO)  <<"Generate external paramter.";
 
 	if(!bfm_utils::IsRMat(m_matR))
 	{

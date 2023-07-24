@@ -16,6 +16,8 @@
 
 //ICP for pose estimation
 #include "FacePointCloud.h"
+#include <boost/filesystem.hpp>
+#include <boost/program_options.hpp>
 
 // Includes for debugging only
 // #include <opencv2/imgproc.hpp>
@@ -27,6 +29,10 @@ const std::string right_line = "--------";
 #define ps_ICP true
 #define USE_POINT_TO_PLANE true
 
+namespace fs = boost::filesystem;
+// namespace po = boost::program_options;
+
+const std::string LOG_PATH = R"(./log)";
 // const unsigned int global_num_shape_pcs = 199;
 // const unsigned int global_num_tex_pcs = 199;
 // const unsigned int global_num_exp_pcs = 100;
@@ -45,13 +51,23 @@ const std::string right_line = "--------";
 */
 
 int main(int argc, char *argv[])
-{ 
+{
+    google::InitGoogleLogging(argv[0]); 
+    FLAGS_logtostderr = false;
+    if(fs::exists(LOG_PATH)) 
+        fs::remove_all(LOG_PATH);
+    fs::create_directory(LOG_PATH);
+    FLAGS_alsologtostderr = true;
+    FLAGS_log_dir = LOG_PATH;
+    FLAGS_log_prefix = true; 
+    FLAGS_colorlogtostderr =true;
+
     //init BFM
-    std::cout<<left_line<<"Start init of BFM"<<right_line<<std::endl;
+    LOG(INFO)<<left_line<<"Init BFM"<<right_line;
     BFM bfm;
 
     if(!bfm.init(argc, argv)){
-        std::cout<<"ERROR in the init of BFM"<<std::endl;
+        std::cout<<"ERROR in the init BFM"<<std::endl;
     }else{
         std::cout<<left_line<<"Finish init of BFM-------"<<right_line<<std::endl;
     }
@@ -680,7 +696,7 @@ int main(int argc, char *argv[])
     std::vector<double> estimated_coefs_shape(global_num_shape_pcs);
     std::vector<double> estimated_coefs_tex(global_num_tex_pcs);
     std::vector<double> estimated_coefs_exp(global_num_exp_pcs);
-    std::tie(estimated_coefs_shape, estimated_coefs_tex, estimated_coefs_exp) = optimizer->estimateParams(targetLandmarksMesh, targetMesh, SHAPE, TEX, EXP, _initial_coefs_shape, _initial_coefs_tex, _initial_coefs_exp, bfm, bfm_landmarkIndex_list);
+    std::tie(estimated_coefs_shape, estimated_coefs_tex, estimated_coefs_exp) = optimizer->estimateParams(targetLandmarksMesh, targetMesh, SHAPE, TEX, EXP, _initial_coefs_shape, _initial_coefs_tex, _initial_coefs_exp, bfm, bfm_landmarkIndex_list, averageBFM_triangle_list);
     
     _initial_coefs_exp.clear();
     _initial_coefs_shape.clear();
@@ -722,7 +738,7 @@ int main(int argc, char *argv[])
     std::vector<double> final_coefs_shape(global_num_shape_pcs);
     std::vector<double> final_coefs_tex(global_num_tex_pcs);
     std::vector<double> final_coefs_exp(global_num_exp_pcs);
-    std::tie(final_coefs_shape, final_coefs_tex, final_coefs_exp) = optimizer_forColor->estimateParams_colors(targetMesh, SHAPE, TEX, EXP, estimated_coefs_shape, estimated_coefs_tex, estimated_coefs_exp, bfm);
+    std::tie(final_coefs_shape, final_coefs_tex, final_coefs_exp) = optimizer_forColor->estimateParams_colors(targetMesh, SHAPE, TEX, EXP, estimated_coefs_shape, estimated_coefs_tex, estimated_coefs_exp, bfm, averageBFM_triangle_list);
     
     delete optimizer_forColor;
 
@@ -894,8 +910,8 @@ int main(int argc, char *argv[])
     // }
 
     // BfmOptimizer bfm_optimizer;
-
-
+    
+    google::ShutdownGoogleLogging();
 
 	return 0;
 }

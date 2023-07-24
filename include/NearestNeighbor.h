@@ -2,6 +2,7 @@
 #include <flann/flann.hpp>
 
 #include "Eigen.h"
+#include <queue>
 
 struct Match {
 	int idx;
@@ -50,16 +51,42 @@ public:
 		std::cout << "nTargetPoints: " << nTargetPoints << std::endl;
 		std::cout<<"BruteForce Matching"<<std::endl;
 
-		#pragma omp parallel for
+		measuredDists.clear();
+		measuredDists.reserve(nMatches);
+
+		// #pragma omp parallel for
 		for (int i = 0; i < nMatches; i++) {
 			matches[i] = getClosestPoint(transformedPoints[i]);
 		}
+		ave_dist/=counter_valid_point;
 
 		return matches;
 	}
 
+	inline float get_aveDist(){
+		return ave_dist;
+	}
+
+	inline float get_measuredMaxDist(){
+		return measuredMax;
+	}
+
+	inline float get_measuredMinDist(){
+		return measuredMin;
+	}
+
+	inline std::vector<float> get_measuredDists(){
+		return measuredDists;
+	}
+
 private:
 	std::vector<Eigen::Vector3f> m_points;
+	float ave_dist = 0;
+	int counter_valid_point = 0;
+	float measuredMax = -1e23;
+	float measuredMin = 1e23;
+	std::vector<float> measuredDists;
+	float current_dist = -1;
 
 	Match getClosestPoint(const Vector3f& p) {
 		int idx = -1;
@@ -73,8 +100,21 @@ private:
 			}
 		}
 
-		if (minDist <= m_maxDistance)
+		float _copy_dist = minDist;
+		measuredDists.push_back(_copy_dist);
+
+		if (_copy_dist <= m_maxDistance){
+			ave_dist+=_copy_dist;
+			counter_valid_point++;
+			if(_copy_dist <= measuredMin){
+				measuredMin = _copy_dist;
+			}
+			if(_copy_dist >= measuredMax){
+				measuredMax = _copy_dist;
+			}
+
 			return Match{ idx, 1.f };
+		}
 		else
 			return Match{ -1, 0.f };
 	}

@@ -24,11 +24,11 @@ const unsigned int global_num_exp_pcs = 65; //100  //50
 const unsigned int global_num_vertices = 53149;
 const double global_reg_lambda = (1.0)*1e1;
 const double global_regSHAPE_lambda = 1e2; //1e6
-const double global_regEXP_lambda = 1e1;  // 5
+const double global_regEXP_lambda = 1e2;  // 5
 const double global_regTEX_lambda = 1.0; // 1.0
-const double global_sparse_lambda = 5; // 1.0
-const double global_dense_lambda = 2; // 1.0
-const double global_color_lambda = 4e1; // 1.0
+const double global_sparse_lambda = 1.0; // 1.0
+const double global_dense_lambda = 1.0; // 1.0
+const double global_color_lambda = 3e1; // 1.0
 
 void set_global_variables(int i0, int i1, int i2, int i3){
 	const unsigned int global_num_shape_pcs = i0;
@@ -102,7 +102,7 @@ void Generic_writeFaceMeshPly(std::string fn, std::vector<Vector3f> & point_clou
 std::vector<Vector3f> get_GeoErrorPointColors(std::vector<float> & dists, float max, float min){
 	//assign colors to the vertex according to the Geometric error
 	int num_points = dists.size();
-	float threshold = 1e1;
+	float threshold = 4;
 	static std::vector<Vector3f> error_RGB;
 	error_RGB.reserve(num_points);
 	
@@ -119,12 +119,21 @@ std::vector<Vector3f> get_GeoErrorPointColors(std::vector<float> & dists, float 
 		float r=1.0;
 		float g=1.0;
 		float b=1.0;
-		float ratio = (error)/(threshold);
+		float ratio = (error-min)/(max-min);
+		float green_ratio = 0.0;
+		float blue_ratio = ratio;
+		// if(ratio >= 0.5){
+		// 	green_ratio = 1.0;
+		// 	blue_ratio = (1-ratio)*2;
+		// }else{
+		// 	green_ratio = ratio*2;
+		// 	blue_ratio = 0.0;
+		// }
 
 		std::cout<<ratio<<std::endl;
 
 		if(ratio<=1.0){
-			Vector3f color = {r*(ratio), 0.0, b*(1-ratio)};
+			Vector3f color = {r*(ratio), 0.0,  g*(1-blue_ratio)};
 			average_error+=(error);
 			error_RGB.push_back(color);
 		}else{
@@ -1198,14 +1207,13 @@ public:
 
 			double _sign = -1;
 			T sign = T(_sign);
-			if (_coefs_tex[i]<0){
-				tmpTexCoef[i] = _coefs_tex[i]*T(sign);
-				tmpTexCoef[i] = tmpTexCoef[i]*_lambda;
-			}else{
+			// if (_coefs_tex[i]<T(0)){
+			// 	tmpTexCoef[i] = _coefs_tex[i]*T(sign);
+			// 	tmpTexCoef[i] = tmpTexCoef[i]*_lambda;
+			// }else{
 				tmpTexCoef[i] = _coefs_tex[i];
 				tmpTexCoef[i] = tmpTexCoef[i]*_lambda;
-			}
-
+			// }
 		}
 
 		T noise_tex[3];
@@ -1505,9 +1513,9 @@ class ICPOptimizer
 public:
 	ICPOptimizer() : m_bUsePointToPlaneConstraints{false},
 					 m_nIterations{20},
-					 m_nearestNeighborSearch_forSparse{std::make_unique<NearestNeighborSearchFlann>()},
-					 m_nearestNeighborSearch_forDense{std::make_unique<NearestNeighborSearchFlann>()},
-					 m_nearestNeighborSearch_forColor{std::make_unique<NearestNeighborSearchFlann>()}
+					 m_nearestNeighborSearch_forSparse{std::make_unique<NearestNeighborSearchBruteForce>()},
+					 m_nearestNeighborSearch_forDense{std::make_unique<NearestNeighborSearchBruteForce>()},
+					 m_nearestNeighborSearch_forColor{std::make_unique<NearestNeighborSearchBruteForce>()}
 	{
 	}
 
@@ -1536,8 +1544,8 @@ public:
 		m_nIterations = nIterations;
 	}
 
-	virtual std::tuple<std::vector<double>, std::vector<double>, std::vector<double>> estimateParams(const FacePointCloud &target_landmarks, const FacePointCloud &target, Parameter_set &SHAPE, Parameter_set &TEX, Parameter_set &EXP, std::vector<double> _initial_coef_shape, std::vector<double> _initial_coef_tex, std::vector<double> _initial_coef_exp, BFM &bfm, std::vector<int> &bfm_landmarkIndex_list){};
-	virtual std::tuple<std::vector<double>, std::vector<double>, std::vector<double>> estimateParams_colors(const FacePointCloud &target, Parameter_set &SHAPE, Parameter_set &TEX, Parameter_set &EXP, std::vector<double> _initial_coef_shape, std::vector<double> _initial_coef_tex, std::vector<double> _initial_coef_exp, BFM &bfm){};
+	virtual std::tuple<std::vector<double>, std::vector<double>, std::vector<double>> estimateParams(const FacePointCloud &target_landmarks, const FacePointCloud &target, Parameter_set &SHAPE, Parameter_set &TEX, Parameter_set &EXP, std::vector<double> _initial_coef_shape, std::vector<double> _initial_coef_tex, std::vector<double> _initial_coef_exp, BFM &bfm, std::vector<int> &bfm_landmarkIndex_list, std::vector<Vector3i> BFM_triangle_list){};
+	virtual std::tuple<std::vector<double>, std::vector<double>, std::vector<double>> estimateParams_colors(const FacePointCloud &target, Parameter_set &SHAPE, Parameter_set &TEX, Parameter_set &EXP, std::vector<double> _initial_coef_shape, std::vector<double> _initial_coef_tex, std::vector<double> _initial_coef_exp, BFM &bfm, std::vector<Vector3i> BFM_triangle_list){};
 
 protected:
 	bool m_bUsePointToPlaneConstraints;
@@ -1631,7 +1639,7 @@ class CeresICPOptimizer : public ICPOptimizer
 public:
 	CeresICPOptimizer() {}
 	// shape tex, exp
-	virtual std::tuple<std::vector<double>, std::vector<double>, std::vector<double>> estimateParams(const FacePointCloud &target_landmarks, const FacePointCloud &target, Parameter_set &SHAPE, Parameter_set &TEX, Parameter_set &EXP, std::vector<double> _initial_coef_shape, std::vector<double> _initial_coef_tex, std::vector<double> _initial_coef_exp, BFM &bfm, std::vector<int> &bfm_landmarkIndex_list) override
+	virtual std::tuple<std::vector<double>, std::vector<double>, std::vector<double>> estimateParams(const FacePointCloud &target_landmarks, const FacePointCloud &target, Parameter_set &SHAPE, Parameter_set &TEX, Parameter_set &EXP, std::vector<double> _initial_coef_shape, std::vector<double> _initial_coef_tex, std::vector<double> _initial_coef_exp, BFM &bfm, std::vector<int> &bfm_landmarkIndex_list, std::vector<Vector3i> BFM_triangle_list) override
 	{
 		/*source_landmarks
 		- bfm landmarks vertex position
@@ -1757,14 +1765,14 @@ public:
 		// std::cout << "exp: " << estimated_coefs_exp.size() << std::endl;
 
 		// To get triangle list of the BFM mesh to set constraint_bfmManager
-		std::vector<Vector3f> before_BFM_vertex_pos;
-		std::vector<Vector3f> before_BFM_vertex_rgb;
-		std::vector<Vector3i> BFM_triangle_list;
+		// std::vector<Vector3f> before_BFM_vertex_pos;
+		// std::vector<Vector3f> before_BFM_vertex_rgb;
+		// std::vector<Vector3i> BFM_triangle_list;
 
-		std::string f_name = "../output/before_paramEst.ply";
-		std::tie(before_BFM_vertex_pos, before_BFM_vertex_rgb, BFM_triangle_list) = bfm.writeAveBFMmesh(f_name, true);
-		before_BFM_vertex_pos.clear();
-		before_BFM_vertex_rgb.clear();
+		// std::string f_name = "../output/before_paramEst.ply";
+		// std::tie(before_BFM_vertex_pos, before_BFM_vertex_rgb, BFM_triangle_list) = bfm.writeAveBFMmesh(f_name, true);
+		// before_BFM_vertex_pos.clear();
+		// before_BFM_vertex_rgb.clear();
 
 		// auto tuple1 = bfm.transformedBFMMesh("../output/before_paramEst_transformed_mesh.ply", estimated_coefs_shape, estimated_coefs_tex, estimated_coefs_exp, true);
 
@@ -1851,7 +1859,7 @@ public:
 			// }
 			
 			std::vector<Vector3f> float_updated_BFM_vertex_pos = convert_double2float(updated_BFM_vertex_pos);
-
+			std::vector<Vector3f> float_updated_BFM_vertex_rgb = convert_double2float(updated_BFM_vertex_rgb);
 
 			// std::string f_name1 = "../output/after_sparse_iteration_"+std::to_string(i)+".ply";
 			// Generic_writeFaceMeshPly(f_name1,float_updated_BFM_vertex_pos, BFM_triangle_list);
@@ -1949,16 +1957,17 @@ public:
 
 				std::cout<<"Length of the measureDists: "<<measuredDists.size()<<std::endl;
 
-				// int dist_counter = 0;
-				// for(auto & dist : measuredDists){
-				// 	std::cout<<dist_counter<<"th: MINF"<<std::endl;
-				// 	dist_counter++;
-				// }
+				for(unsigned int i = 0; i<measuredDists.size(); i++){
+					std::cout<<measuredDists[i]<<std::endl;
+				}
+
+				std::string f_name_before = "../output/before_paramEst.ply";
+				Generic_writeFaceMeshPly(f_name_before, float_updated_BFM_vertex_pos, float_updated_BFM_vertex_rgb, BFM_triangle_list);
 
 				// get color attributes according to the error
 				std::vector<Vector3f> error_ColorMap_before = get_GeoErrorPointColors(measuredDists, distanceMax, distanceMin);
-				std::string f_name_before = "../output/before_paramEst_errorMap.ply";
-				Generic_writeFaceMeshPly(f_name_before,float_updated_BFM_vertex_pos, error_ColorMap_before, BFM_triangle_list);
+				std::string f_name_before_errorMap = "../output/before_paramEst_errorMap.ply";
+				Generic_writeFaceMeshPly(f_name_before_errorMap,float_updated_BFM_vertex_pos, error_ColorMap_before, BFM_triangle_list);
 
 			}
 
@@ -2060,7 +2069,7 @@ public:
 		return _result_coeffs;
 	}
 
-	virtual std::tuple<std::vector<double>, std::vector<double>, std::vector<double>> estimateParams_colors(const FacePointCloud &target, Parameter_set &SHAPE, Parameter_set &TEX, Parameter_set &EXP, std::vector<double> _initial_coef_shape, std::vector<double> _initial_coef_tex, std::vector<double> _initial_coef_exp, BFM &bfm) override
+	virtual std::tuple<std::vector<double>, std::vector<double>, std::vector<double>> estimateParams_colors(const FacePointCloud &target, Parameter_set &SHAPE, Parameter_set &TEX, Parameter_set &EXP, std::vector<double> _initial_coef_shape, std::vector<double> _initial_coef_tex, std::vector<double> _initial_coef_exp, BFM &bfm, std::vector<Vector3i> BFM_triangle_list) override
 	{
 			/*source_landmarks
 			- bfm landmarks vertex position
@@ -2116,14 +2125,14 @@ public:
 			std::copy(_initial_coef_tex.begin(), _initial_coef_tex.end(), std::back_inserter(estimated_coefs_tex));
 
 			// To get triangle list of the BFM mesh to set constraint_bfmManager
-			std::vector<Vector3f> before_BFM_vertex_pos;
-			std::vector<Vector3f> before_BFM_vertex_rgb;
-			std::vector<Vector3i> BFM_triangle_list;
+			// std::vector<Vector3f> before_BFM_vertex_pos;
+			// std::vector<Vector3f> before_BFM_vertex_rgb;
+			// std::vector<Vector3i> BFM_triangle_list;
 
-			std::string f_name = "../output/before_ColorparamEst.ply";
-			std::tie(before_BFM_vertex_pos, before_BFM_vertex_rgb, BFM_triangle_list) = bfm.writeBFMmesh(f_name, estimated_coefs_shape, estimated_coefs_tex, estimated_coefs_exp, true);
-			before_BFM_vertex_pos.clear();
-			before_BFM_vertex_rgb.clear();
+			// std::string f_name = "../output/before_ColorparamEst.ply";
+			// std::tie(before_BFM_vertex_pos, before_BFM_vertex_rgb, BFM_triangle_list) = bfm.writeBFMmesh(f_name, estimated_coefs_shape, estimated_coefs_tex, estimated_coefs_exp, true);
+			// before_BFM_vertex_pos.clear();
+			// before_BFM_vertex_rgb.clear();
 
 			// set constraint_bfmManager
 			Constraint_bfmManager constraint_bfmManager(SHAPE, TEX, EXP, BFM_triangle_list);
@@ -2159,6 +2168,7 @@ public:
 				
 				
 				std::vector<Vector3f> float_updated_BFM_vertex_pos = convert_double2float(updated_BFM_vertex_pos);
+				std::vector<Vector3f> float_updated_BFM_vertex_rgb = convert_double2float(updated_BFM_vertex_rgb);
 
 				FacePointCloud transform_sourceMesh{float_updated_BFM_vertex_pos, BFM_triangle_list};
 
@@ -2171,6 +2181,43 @@ public:
 				auto matches = m_nearestNeighborSearch_forColor->queryMatches(transform_sourceMesh.getPoints());
 				std::cout<<"Average distance in Color space: "<<m_nearestNeighborSearch_forColor->get_aveDist()<<std::endl;
 
+			if (i == 0){
+				//Goal: apply the distance to the each vertex color attribute
+				/*
+				* Large error: red
+				* Small error: blue
+				* 	Error is normalized [0, 1] by dividing the current error by maximum
+				*   Map the normalized error on to red[0, 255], and blue [0,255]
+				*   P = 0.01 (Small error)
+				*   Red = int(255*(P))
+				* 	Blue = int(255*(1-P))	
+				*
+				*/
+				std::cout<<"=================="<<"INIT EVALUTAION"<<"===================="<<std::endl;
+
+				//get max distance, min distance
+				float distanceMax = m_nearestNeighborSearch_forColor->get_measuredMaxDist();
+				float distanceMin = m_nearestNeighborSearch_forColor->get_measuredMinDist();
+
+				//get the distance of each vertex from their neighbor
+				std::vector<float> measuredDists = m_nearestNeighborSearch_forColor->get_measuredDists();
+
+				std::cout<<"MAX distance: "<<distanceMax<<std::endl;
+				std::cout<<"MIN distance: "<<distanceMin<<std::endl;
+
+				std::cout<<"Length of the measureDists: "<<measuredDists.size()<<std::endl;
+				for(unsigned int i = 0; i<measuredDists.size(); i++){
+					std::cout<<measuredDists[i]<<std::endl;
+				}
+				std::string f_name_before = "../output/before_ColorParamEst.ply";
+				Generic_writeFaceMeshPly(f_name_before, float_updated_BFM_vertex_pos, float_updated_BFM_vertex_rgb, BFM_triangle_list);
+
+				// // get color attributes according to the error
+				// std::vector<Vector3f> error_ColorMap_before = get_GeoErrorPointColors(measuredDists, distanceMax, distanceMin);
+				// std::string f_name_before_errorMap = "../output/before_ColorParamEst_errorMap.ply";
+				// Generic_writeFaceMeshPly(f_name_before_errorMap,float_updated_BFM_vertex_pos, error_ColorMap_before, BFM_triangle_list);
+
+			}
 
 				pruneCorrespondences(d_transformed_source_normals, target_normals, matches);
 
