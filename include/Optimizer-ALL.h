@@ -28,7 +28,7 @@ const double global_regEXP_lambda = 1e2;  // 5
 const double global_regTEX_lambda = 1.0; // 1.0
 const double global_sparse_lambda = 1.0; // 1.0
 const double global_dense_lambda = 1.0; // 1.0
-const double global_color_lambda = 3e1; // 1.0
+const double global_color_lambda = 2e1; // 1.0
 
 void set_global_variables(int i0, int i1, int i2, int i3){
 	const unsigned int global_num_shape_pcs = i0;
@@ -1967,9 +1967,9 @@ public:
 
 				std::cout<<"Length of the measureDists: "<<measuredDists.size()<<std::endl;
 
-				for(unsigned int i = 0; i<measuredDists.size(); i++){
-					std::cout<<measuredDists[i]<<std::endl;
-				}
+				// for(unsigned int i = 0; i<measuredDists.size(); i++){
+				// 	std::cout<<measuredDists[i]<<std::endl;
+				// }
 
 				std::string f_name_before = "../output/before_paramEst.ply";
 				Generic_writeFaceMeshPly(f_name_before, float_updated_BFM_vertex_pos, float_updated_BFM_vertex_rgb, BFM_triangle_list);
@@ -2035,10 +2035,10 @@ public:
 				estimated_coefs_exp[i] =+ delta_coefs_exp[i];
 			}
 
-			// for (unsigned int i = 0; i < _int_num_texPc; i++)
-			// {
-			// 	estimated_coefs_tex[i] =+ delta_coefs_tex[i];
-			// }
+			for (unsigned int i = 0; i < _int_num_texPc; i++)
+			{
+				estimated_coefs_tex[i] =+ delta_coefs_tex[i];
+			}
 
 			bfmMeshUpdate.setZero();
 			std::cout << "Optimization iteration done." << std::endl;
@@ -2216,9 +2216,9 @@ public:
 				std::cout<<"MIN distance: "<<distanceMin<<std::endl;
 
 				std::cout<<"Length of the measureDists: "<<measuredDists.size()<<std::endl;
-				for(unsigned int i = 0; i<measuredDists.size(); i++){
-					std::cout<<measuredDists[i]<<std::endl;
-				}
+				// for(unsigned int i = 0; i<measuredDists.size(); i++){
+				// 	std::cout<<measuredDists[i]<<std::endl;
+				// }
 				std::string f_name_before = "../output/before_ColorParamEst.ply";
 				Generic_writeFaceMeshPly(f_name_before, float_updated_BFM_vertex_pos, float_updated_BFM_vertex_rgb, BFM_triangle_list);
 
@@ -2278,9 +2278,6 @@ public:
 				for (unsigned int i = 0; i < _int_num_texPc; i++)
 				{
 					estimated_coefs_tex[i] =+ delta_coefs_tex[i];
-					if(estimated_coefs_tex[i]<0){
-						estimated_coefs_tex[i]*=-1;
-					}
 				}
 
 				bfmMeshUpdate.setZero();
@@ -2443,8 +2440,9 @@ private:
 				// ceres::CostFunction *cost_function = PointToPointConstraint_shape::create(targetPoint, weight, vertex_index, _constraint_bfmManager, global_dense_lambda);
 				// problem.AddResidualBlock(cost_function, nullptr, generic_BFMUpdate.getData_shape());
 				
-				// ceres::CostFunction *cost_function_color = ColorContraint::create(targetColor, weight, vertex_index, _constraint_bfmManager);
-				// problem.AddResidualBlock(cost_function_color, nullptr, generic_BFMUpdate.getData_tex());
+				ceres::CostFunction *cost_function_color = ColorContraint::create(targetColor, weight, vertex_index, _constraint_bfmManager);
+				problem.AddResidualBlock(cost_function_color, nullptr, generic_BFMUpdate.getData_tex());
+
 				// if (m_bUsePointToPlaneConstraints) {
 				// 	const auto& targetNormal = targetNormals[match.idx];
 
@@ -2468,6 +2466,9 @@ private:
 
 		ceres::CostFunction *cost_function_regEXP = Regularizer_exp::create(_constraint_bfmManager);
 		problem.AddResidualBlock(cost_function_regEXP, nullptr, generic_BFMUpdate.getData_exp());
+
+		// ceres::CostFunction *cost_function_regTEX = Regularizer_color::create(_constraint_bfmManager);
+		// problem.AddResidualBlock(cost_function_regTEX, nullptr, generic_BFMUpdate.getData_tex());
 
 	}
 
