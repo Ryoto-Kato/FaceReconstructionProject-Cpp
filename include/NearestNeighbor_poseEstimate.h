@@ -68,6 +68,8 @@ private:
 			}
 		}
 
+		float exp_negative_dist = exp(minDist*(-1));
+
 		if (minDist <= m_maxDistance)
 			return Match_ps{ idx, 1.f };
 		else
@@ -150,6 +152,8 @@ public:
 
 		for (int i = 0; i < nMatches; ++i) {
             auto dist = *distances[i];
+			float exp_negative_dist = exp(dist*(-1));
+
 			if (dist <= m_maxDistance){
 				matches.push_back(Match_ps{ *indices[i], 1.f });
 				average_dist+=dist;

@@ -28,8 +28,8 @@ const std::string right_line = "--------";
 #define ONLY_SELECTED_LANDMARKS true
 #define ps_ICP true
 #define USE_POINT_TO_PLANE true
-#define BRUTEFORCH_MATCH_GEO true
-#define BRUTEFORCH_MATCH_TEX false
+#define BRUTEFORCE_MATCH_GEO false
+#define BRUTEFORCE_MATCH_TEX false
 
 namespace fs = boost::filesystem;
 // namespace po = boost::program_options;
@@ -157,6 +157,32 @@ int main(int argc, char *argv[])
     // const std::string depth_txt_filename = std::string("/Depth/DepthKinect/depth_0019_s2_Smile.txt");
     // std::cout<<"Done"<<std::endl;
 
+    // const std::string dataset_folder = std::string("../data/EURECOM_Kinect_Face_Dataset/0042/s1");
+    // const std::string rgb_filename = std::string("/RGB/rgb_0042_s1_Smile.bmp");
+    // const std::string depth_filename = std::string("/Depth/DepthBMP/depth_0042_s1_Smile.bmp");
+    // const std::string depth_txt_filename = std::string("/Depth/DepthKinect/depth_0042_s1_Smile.txt");
+    
+    //1.
+    // const std::string dataset_folder = std::string("../data/EURECOM_Kinect_Face_Dataset/0043/s1");
+    // const std::string rgb_filename = std::string("/RGB/rgb_0043_s1_Smile.bmp");
+    // const std::string depth_filename = std::string("/Depth/DepthBMP/depth_0043_s1_Smile.bmp");
+    // const std::string depth_txt_filename = std::string("/Depth/DepthKinect/depth_0043_s1_Smile.txt");
+    
+    //2.
+    const std::string dataset_folder = std::string("../data/EURECOM_Kinect_Face_Dataset/0042/s1");
+    const std::string rgb_filename = std::string("/RGB/rgb_0042_s1_Smile.bmp");
+    const std::string depth_filename = std::string("/Depth/DepthBMP/depth_0042_s1_Smile.bmp");
+    const std::string depth_txt_filename = std::string("/Depth/DepthKinect/depth_0042_s1_Smile.txt");
+
+    //3.
+
+
+
+    //4.
+
+
+
+
     // std::cout<<"RGB and RGBD input now loading....";
     // const std::string dataset_folder = std::string("../data/EURECOM_Kinect_Face_Dataset/0050/s1");
     // const std::string rgb_filename = std::string("/RGB/rgb_0050_s1_OpenMouth.bmp");
@@ -171,10 +197,10 @@ int main(int argc, char *argv[])
     // const std::string depth_txt_filename = std::string("/Depth/DepthKinect/depth_0042_s1_OpenMouth.txt");
     // std::cout<<"Done"<<std::endl;
 
-    const std::string dataset_folder = std::string("../data/EURECOM_Kinect_Face_Dataset/0042/s1");
-    const std::string rgb_filename = std::string("/RGB/rgb_0042_s1_Smile.bmp");
-    const std::string depth_filename = std::string("/Depth/DepthBMP/depth_0042_s1_Smile.bmp");
-    const std::string depth_txt_filename = std::string("/Depth/DepthKinect/depth_0042_s1_Smile.txt");
+    // const std::string dataset_folder = std::string("../data/EURECOM_Kinect_Face_Dataset/0042/s1");
+    // const std::string rgb_filename = std::string("/RGB/rgb_0042_s1_Smile.bmp");
+    // const std::string depth_filename = std::string("/Depth/DepthBMP/depth_0042_s1_Smile.bmp");
+    // const std::string depth_txt_filename = std::string("/Depth/DepthKinect/depth_0042_s1_Smile.txt");
 
     // const std::string dataset_folder = std::string("../data/EURECOM_Kinect_Face_Dataset/0042/s1");
     // const std::string rgb_filename = std::string("/RGB/rgb_0042_s1_Neutral.bmp");
@@ -411,6 +437,7 @@ int main(int argc, char *argv[])
         *
         */
         // std::vector<int> considered_landmarks_Ids = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 19, 24};
+        //31, 32, 33, 34, 35,
         std::vector<int> considered_landmarks_Ids = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 64}; //, 
         #ifdef DEBUG
         std::cout<<"ONLY consider "<<considered_landmarks_Ids.size()<<" landmarks"<<std::endl;
@@ -680,10 +707,10 @@ int main(int argc, char *argv[])
 
 
     ICPOptimizer* optimizer = nullptr;
-    optimizer = new CeresICPOptimizer(BRUTEFORCH_MATCH_GEO);
+    optimizer = new CeresICPOptimizer(BRUTEFORCE_MATCH_GEO);
 
-    optimizer->setMatchingMaxDistance_sparse(1e2);
-    optimizer->setMatchingMaxDistance_dense(1e1);
+    optimizer->setMatchingMaxDistance_sparse(1e3);
+    optimizer->setMatchingMaxDistance_dense(1e2);
     optimizer->usePointToPlaneConstraints(false);
     optimizer->setNbOfIterations(10);
 
@@ -731,9 +758,9 @@ int main(int argc, char *argv[])
 
     ICPOptimizer* optimizer_forColor = nullptr;
 
-    optimizer_forColor = new CeresICPOptimizer(BRUTEFORCH_MATCH_TEX);
+    optimizer_forColor = new CeresICPOptimizer(BRUTEFORCE_MATCH_TEX);
 
-    optimizer_forColor->setMatchingMaxDistance_color(1e1);
+    optimizer_forColor->setMatchingMaxDistance_color(1e2);
     optimizer_forColor->usePointToPlaneConstraints(false);
     optimizer_forColor->setNbOfIterations(5);
 

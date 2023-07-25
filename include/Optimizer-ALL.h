@@ -25,9 +25,9 @@ const unsigned int global_num_vertices = 53149;
 const double global_reg_lambda = (1.0)*1e1;
 const double global_regSHAPE_lambda = 1e2; //1e6
 const double global_regEXP_lambda = 1e2;  // 5
-const double global_regTEX_lambda = 1.0; // 1.0
-const double global_sparse_lambda = 1.0; // 1.0
-const double global_dense_lambda = 1.0; // 1.0
+const double global_regTEX_lambda = 1.0; // ./1.0
+const double global_sparse_lambda = 5e1; // 1.0
+const double global_dense_lambda = 1e2; // 1.0
 const double global_color_lambda = 2e1; // 1.0
 
 void set_global_variables(int i0, int i1, int i2, int i3){
@@ -134,7 +134,7 @@ std::vector<Vector3f> get_GeoErrorPointColors(std::vector<float> & dists, float 
 
 		if(ratio<=1.0){
 			Vector3f color = {r*(ratio), 0.0,  g*(1-blue_ratio)};
-			average_error+=(error);
+			average_error+=(sqrt(error));
 			error_RGB.push_back(color);
 		}else{
 			Vector3f color = {1.0, 0.0, 0.0};
@@ -1513,7 +1513,7 @@ class ICPOptimizer
 public:
 	ICPOptimizer() : m_bUsePointToPlaneConstraints{false},
 					 m_nIterations{20},
-					 m_nearestNeighborSearch_forSparse{std::make_unique<NearestNeighborSearchFlann>()},
+					 m_nearestNeighborSearch_forSparse{std::make_unique<NearestNeighborSearchBruteForce>()},
 					 m_nearestNeighborSearch_forDense{std::make_unique<NearestNeighborSearchFlann>()},
 					 m_nearestNeighborSearch_forColor{std::make_unique<NearestNeighborSearchFlann>()}
 	{
@@ -1937,8 +1937,8 @@ public:
 			auto matches_sparse = m_nearestNeighborSearch_forSparse->queryMatches(transformed_sourceLandmarksMesh.getPoints());
 			auto matches_dense = m_nearestNeighborSearch_forDense->queryMatches(transform_sourceMesh.getPoints());
 
-			std::cout<<"Average distance [mm] of sparse: "<<m_nearestNeighborSearch_forSparse->get_aveDist()<<std::endl;
-			std::cout<<"Average distance [mm] of dense: "<<m_nearestNeighborSearch_forDense->get_aveDist()<<std::endl;
+			std::cout<<"Average distance [mm] of sparse: "<<sqrt(m_nearestNeighborSearch_forSparse->get_aveDist())<<std::endl;
+			std::cout<<"Average distance [mm] of dense: "<<sqrt(m_nearestNeighborSearch_forDense->get_aveDist())<<std::endl;
 
 
 			if (i == 0){
@@ -2055,7 +2055,7 @@ public:
 		FacePointCloud final_sourceMesh{float_final_BFM_vertex_pos, BFM_triangle_list};
 		auto matches_Eval = m_nearestNeighborSearch_forDense->queryMatches(final_sourceMesh.getPoints());
 
-		std::cout<<"Average distance [mm] of dense evaluation: "<<m_nearestNeighborSearch_forDense->get_aveDist()<<std::endl;
+		std::cout<<"Average distance [mm] of dense evaluation: "<<sqrt(m_nearestNeighborSearch_forDense->get_aveDist())<<std::endl;
 		float final_MaxDist = m_nearestNeighborSearch_forDense->get_measuredMaxDist();
 		float final_MinDist = m_nearestNeighborSearch_forDense->get_measuredMinDist();
 
@@ -2189,7 +2189,7 @@ public:
 				// matches_sparse contains the correspondences
 				// float
 				auto matches = m_nearestNeighborSearch_forColor->queryMatches(transform_sourceMesh.getPoints());
-				std::cout<<"Average distance in Color space: "<<m_nearestNeighborSearch_forColor->get_aveDist()<<std::endl;
+				std::cout<<"Average distance in Color space: "<<sqrt(m_nearestNeighborSearch_forColor->get_aveDist())<<std::endl;
 
 			if (i == 0){
 				//Goal: apply the distance to the each vertex color attribute

@@ -102,6 +102,7 @@ private:
 
 		float _copy_dist = minDist;
 		measuredDists.push_back(_copy_dist);
+		// float exp_negative_dist = exp(_copy_dist*(-1));
 
 		if (_copy_dist <= m_maxDistance){
 			ave_dist+=_copy_dist;
@@ -113,7 +114,7 @@ private:
 				measuredMax = _copy_dist;
 			}
 
-			return Match{ idx, 1.f };
+			return Match{ idx,  1.f};
 		}
 		else
 			return Match{ -1, 0.f };
@@ -204,7 +205,8 @@ public:
             auto dist = *distances[i];
 			// std::cout<<i<<"th match distance: "<<dist<<std::endl;
 			if (dist <= m_maxDistance){
-				matches.push_back(Match{ *indices[i], 1.f });
+				float exp_nagative_dist = exp(-1*dist);
+				matches.push_back(Match{ *indices[i], exp_nagative_dist });
 				average_dist+=dist;
 				counter_valid_point++;
 				if(dist <= min_dist){
