@@ -1513,9 +1513,9 @@ class ICPOptimizer
 public:
 	ICPOptimizer() : m_bUsePointToPlaneConstraints{false},
 					 m_nIterations{20},
-					 m_nearestNeighborSearch_forSparse{std::make_unique<NearestNeighborSearchBruteForce>()},
-					 m_nearestNeighborSearch_forDense{std::make_unique<NearestNeighborSearchBruteForce>()},
-					 m_nearestNeighborSearch_forColor{std::make_unique<NearestNeighborSearchBruteForce>()}
+					 m_nearestNeighborSearch_forSparse{std::make_unique<NearestNeighborSearchFlann>()},
+					 m_nearestNeighborSearch_forDense{std::make_unique<NearestNeighborSearchFlann>()},
+					 m_nearestNeighborSearch_forColor{std::make_unique<NearestNeighborSearchFlann>()}
 	{
 	}
 
@@ -1637,7 +1637,17 @@ std::vector<Vector3f> convert_double2float(std::vector<Vector3d> &double_vector)
 class CeresICPOptimizer : public ICPOptimizer
 {
 public:
-	CeresICPOptimizer() {}
+	CeresICPOptimizer(bool BRUTE_FORCE) {
+		if(BRUTE_FORCE){
+			m_nearestNeighborSearch_forSparse = nullptr;
+			m_nearestNeighborSearch_forSparse = std::make_unique<NearestNeighborSearchBruteForce>();
+			m_nearestNeighborSearch_forDense = nullptr;
+			m_nearestNeighborSearch_forDense = std::make_unique<NearestNeighborSearchBruteForce>();
+			m_nearestNeighborSearch_forColor = nullptr;
+			m_nearestNeighborSearch_forColor = std::make_unique<NearestNeighborSearchBruteForce>();
+
+		}
+	}
 	// shape tex, exp
 	virtual std::tuple<std::vector<double>, std::vector<double>, std::vector<double>> estimateParams(const FacePointCloud &target_landmarks, const FacePointCloud &target, Parameter_set &SHAPE, Parameter_set &TEX, Parameter_set &EXP, std::vector<double> _initial_coef_shape, std::vector<double> _initial_coef_tex, std::vector<double> _initial_coef_exp, BFM &bfm, std::vector<int> &bfm_landmarkIndex_list, std::vector<Vector3i> BFM_triangle_list) override
 	{

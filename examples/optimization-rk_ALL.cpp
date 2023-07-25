@@ -28,6 +28,8 @@ const std::string right_line = "--------";
 #define ONLY_SELECTED_LANDMARKS true
 #define ps_ICP true
 #define USE_POINT_TO_PLANE true
+#define BRUTEFORCH_MATCH_GEO true
+#define BRUTEFORCH_MATCH_TEX false
 
 namespace fs = boost::filesystem;
 // namespace po = boost::program_options;
@@ -678,9 +680,9 @@ int main(int argc, char *argv[])
 
 
     ICPOptimizer* optimizer = nullptr;
-    optimizer = new CeresICPOptimizer();
+    optimizer = new CeresICPOptimizer(BRUTEFORCH_MATCH_GEO);
 
-    optimizer->setMatchingMaxDistance_sparse(1e3);
+    optimizer->setMatchingMaxDistance_sparse(1e2);
     optimizer->setMatchingMaxDistance_dense(1e1);
     optimizer->usePointToPlaneConstraints(false);
     optimizer->setNbOfIterations(10);
@@ -729,7 +731,7 @@ int main(int argc, char *argv[])
 
     ICPOptimizer* optimizer_forColor = nullptr;
 
-    optimizer_forColor = new CeresICPOptimizer();
+    optimizer_forColor = new CeresICPOptimizer(BRUTEFORCH_MATCH_TEX);
 
     optimizer_forColor->setMatchingMaxDistance_color(1e1);
     optimizer_forColor->usePointToPlaneConstraints(false);
