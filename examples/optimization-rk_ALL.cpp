@@ -33,7 +33,7 @@ const std::string right_line = "--------";
 #define FACEREANACTMENT true
 
 namespace fs = boost::filesystem;
-// namespace po = boost::program_options;
+namespace po = boost::program_options;
 
 const std::string LOG_PATH = R"(./log)";
 // const unsigned int global_num_shape_pcs = 199;
@@ -55,6 +55,24 @@ const std::string LOG_PATH = R"(./log)";
 
 int main(int argc, char *argv[])
 {
+    // Declare the supported options.
+    po::options_description desc("Allowed options (all optional)");
+    desc.add_options()
+        ("help,h", "produce this help message")
+        ("person_id,p", po::value<int>()->default_value(42), "person identifier")
+        ("session,s", po::value<int>()->default_value(1), "session number (1 or 2)")
+        ("expression,", po::value<std::string>()->default_value("Smile"), "face status (Neutral, Smile, OpenMouth, LeftProfile, RightProfile)")
+    ;
+
+    po::variables_map opts;
+    po::store(po::parse_command_line(argc, argv, desc), opts);
+    po::notify(opts);
+
+    if (opts.count("help")) {
+        cout << desc << "\n";
+        return 1;
+    }
+
     google::InitGoogleLogging(argv[0]);
     FLAGS_logtostderr = false;
     if (fs::exists(LOG_PATH))
@@ -158,81 +176,14 @@ int main(int argc, char *argv[])
     // Pose estimation using the landmarks.
     // Load RGB and RGBD image which will be processed.
 
-    // std::cout<<"RGB and RGBD input now loading....";
-    // const std::string dataset_folder = std::string("../data/EURECOM_Kinect_Face_Dataset/0032/s2");
-    // const std::string rgb_filename = std::string("/RGB/rgb_0032_s2_Smile.bmp");
-    // const std::string depth_filename = std::string("/Depth/DepthBMP/depth_0032_s2_Smile.bmp");
-    // const std::string depth_txt_filename = std::string("/Depth/DepthKinect/depth_0032_s2_Smile.txt");
-    // // std::cout<<"Done"<<std::endl;
+    std::stringstream ss;
+    ss << std::setw(4) << std::setfill('0') << opts["person_id"].as<int>();
+    const std::string person_id = ss.str();
 
-    // const std::string dataset_folder = std::string("../data/EURECOM_Kinect_Face_Dataset/0042/s1");
-    // const std::string rgb_filename = std::string("/RGB/rgb_0042_s1_Smile.bmp");
-    // const std::string depth_filename = std::string("/Depth/DepthBMP/depth_0042_s1_Smile.bmp");
-    // const std::string depth_txt_filename = std::string("/Depth/DepthKinect/depth_0042_s1_Smile.txt");
-
-    // 1.
-    //  const std::string dataset_folder = std::string("../data/EURECOM_Kinect_Face_Dataset/0043/s1");
-    //  const std::string rgb_filename = std::string("/RGB/rgb_0043_s1_Smile.bmp");
-    //  const std::string depth_filename = std::string("/Depth/DepthBMP/depth_0043_s1_Smile.bmp");
-    //  const std::string depth_txt_filename = std::string("/Depth/DepthKinect/depth_0043_s1_Smile.txt");
-
-    // 2.
-    const std::string dataset_folder = std::string("../data/EURECOM_Kinect_Face_Dataset/0042/s1");
-    const std::string rgb_filename = std::string("/RGB/rgb_0042_s1_Smile.bmp");
-    const std::string depth_filename = std::string("/Depth/DepthBMP/depth_0042_s1_Smile.bmp");
-    const std::string depth_txt_filename = std::string("/Depth/DepthKinect/depth_0042_s1_Smile.txt");
-
-    // 3.
-    //  const std::string dataset_folder = std::string("../data/EURECOM_Kinect_Face_Dataset/0049/s1");
-    //  const std::string rgb_filename = std::string("/RGB/rgb_0049_s1_Smile.bmp");
-    //  const std::string depth_filename = std::string("/Depth/DepthBMP/depth_0049_s1_Smile.bmp");
-    //  const std::string depth_txt_filename = std::string("/Depth/DepthKinect/depth_0049_s1_Smile.txt");
-
-    // 4.
-    //  const std::string dataset_folder = std::string("../data/EURECOM_Kinect_Face_Dataset/0042/s1");
-    //  const std::string rgb_filename = std::string("/RGB/rgb_0042_s1_OpenMouth.bmp");
-    //  const std::string depth_filename = std::string("/Depth/DepthBMP/depth_0042_s1_OpenMouth.bmp");
-    //  const std::string depth_txt_filename = std::string("/Depth/DepthKinect/depth_0042_s1_OpenMouth.txt");
-
-    // Neutral 1
-    //  const std::string dataset_folder = std::string("../data/EURECOM_Kinect_Face_Dataset/0042/s1");
-    //  const std::string rgb_filename = std::string("/RGB/rgb_0042_s1_Neutral.bmp");
-    //  const std::string depth_filename = std::string("/Depth/DepthBMP/depth_0042_s1_Neutral.bmp");
-    //  const std::string depth_txt_filename = std::string("/Depth/DepthKinect/depth_0042_s1_Neutral.txt");
-
-    // std::cout<<"RGB and RGBD input now loading....";
-    // const std::string dataset_folder = std::string("../data/EURECOM_Kinect_Face_Dataset/0050/s1");
-    // const std::string rgb_filename = std::string("/RGB/rgb_0050_s1_OpenMouth.bmp");
-    // const std::string depth_filename = std::string("/Depth/DepthBMP/depth_0050_s1_OpenMouth.bmp");
-    // const std::string depth_txt_filename = std::string("/Depth/DepthKinect/depth_0050_s1_OpenMouth.txt");
-    // std::cout<<"Done"<<std::endl;
-
-    // std::cout<<"RGB and RGBD input now loading....";
-    // const std::string dataset_folder = std::string("../data/EURECOM_Kinect_Face_Dataset/0042/s1");
-    // const std::string rgb_filename = std::string("/RGB/rgb_0042_s1_OpenMouth.bmp");
-    // const std::string depth_filename = std::string("/Depth/DepthBMP/depth_0042_s1_OpenMouth.bmp");
-    // const std::string depth_txt_filename = std::string("/Depth/DepthKinect/depth_0042_s1_OpenMouth.txt");
-    // std::cout<<"Done"<<std::endl;
-
-    // const std::string dataset_folder = std::string("../data/EURECOM_Kinect_Face_Dataset/0042/s1");
-    // const std::string rgb_filename = std::string("/RGB/rgb_0042_s1_Smile.bmp");
-    // const std::string depth_filename = std::string("/Depth/DepthBMP/depth_0042_s1_Smile.bmp");
-    // const std::string depth_txt_filename = std::string("/Depth/DepthKinect/depth_0042_s1_Smile.txt");
-
-    // const std::string dataset_folder = std::string("../data/EURECOM_Kinect_Face_Dataset/0042/s1");
-    // const std::string rgb_filename = std::string("/RGB/rgb_0042_s1_Neutral.bmp");
-    // const std::string depth_filename = std::string("/Depth/DepthBMP/depth_0042_s1_Neutral.bmp");
-    // const std::string depth_txt_filename = std::string("/Depth/DepthKinect/depth_0042_s1_Neutral.txt");
-
-    // const std::string dataset_folder = std::string("../data/EURECOM_Kinect_Face_Dataset/0042/s1");
-    // const std::string rgb_filename = std::string("/RGB/rgb_0042_s1_OpenMouth.bmp");
-    // const std::string depth_filename = std::string("/Depth/DepthBMP/depth_0042_s1_OpenMouth.bmp");
-    // const std::string depth_txt_filename = std::string("/Depth/DepthKinect/depth_0042_s1_OpenMouth.txt");
-
-    // const std::string dataset_folder = std::string("../data/EURECOM_Kinect_Face_Dataset/0023/s1");
-    // const std::string rgb_filename = std::string("/RGB/rgb_0023_s1_Smile.bmp");
-    // const std::string depth_filename = std::string("/Depth/DepthBMP/depth_0023_s1_Smile.bmp");
-    // const std::string depth_txt_filename = std::string("/Depth/DepthKinect/depth_0023_s1_Smile.txt");
+    const std::string dataset_folder = "../data/EURECOM_Kinect_Face_Dataset/" + person_id + "/s" + std::to_string(opts["session"].as<int>()) ;
+    const std::string rgb_filename = "/RGB/rgb_" + person_id + "_s" + std::to_string(opts["session"].as<int>()) + "_" + opts["expression"].as<std::string>() + ".bmp";
+    const std::string depth_filename = "/Depth/DepthBMP/depth_" + person_id + "_s" + std::to_string(opts["session"].as<int>()) + "_" + opts["expression"].as<std::string>() + ".bmp";
+    const std::string depth_txt_filename = "/Depth/DepthKinect/depth_" + person_id + "_s" + std::to_string(opts["session"].as<int>()) + "_" + opts["expression"].as<std::string>() + ".txt";
 
     std::cout << "Launch the facial landmark detection on " << dataset_folder + rgb_filename << std::endl;
     FacialLandmarkExtractor landmarks_extractor;
