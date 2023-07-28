@@ -23,7 +23,7 @@ except:
     save_figure = False
 
 uf = 2 # upscale factor (rendering_res = image_res * upscale factor)
-img_dim = (256, 256)*uf
+img_dim = (256*uf, 256*uf)
 
 # Load data
 # bfm_trimesh = trimesh.load('../output/after_ColorparamEst.ply')
