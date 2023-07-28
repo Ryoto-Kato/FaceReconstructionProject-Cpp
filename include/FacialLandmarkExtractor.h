@@ -98,6 +98,10 @@ public:
             //point.x() = col
             //potin.y() = row
             _landmark_image.at<cv::Vec3b>(pix_landmark.y(), pix_landmark.x()) = cv::Vec3b(blue, green, red);
+            _landmark_image.at<cv::Vec3b>(pix_landmark.y()-1, pix_landmark.x()) = cv::Vec3b(blue, green, red);
+            _landmark_image.at<cv::Vec3b>(pix_landmark.y()+1, pix_landmark.x()) = cv::Vec3b(blue, green, red);
+            _landmark_image.at<cv::Vec3b>(pix_landmark.y(), pix_landmark.x()-1) = cv::Vec3b(blue, green, red);
+            _landmark_image.at<cv::Vec3b>(pix_landmark.y(), pix_landmark.x()+1) = cv::Vec3b(blue, green, red);
             counter++;
         }
 
@@ -129,7 +133,7 @@ public:
     {
         cv::circle( img, fp, 2, color, cv::FILLED, cv::LINE_AA, 0 );
     }
-    
+
     // Draw delaunay triangles
     static void draw_delaunay(cv::Mat& img, cv::Subdiv2D& subdiv)
     {
@@ -139,14 +143,14 @@ public:
         std::vector<cv::Point> pt(3);
         cv::Size size = img.size();
         cv::Rect rect(0,0, size.width, size.height);
-    
+
         for( size_t i = 0; i < triangleList.size(); i++ )
         {
             cv::Vec6f t = triangleList[i];
             pt[0] = cv::Point(std::round(t[0]), std::round(t[1]));
             pt[1] = cv::Point(std::round(t[2]), std::round(t[3]));
             pt[2] = cv::Point(std::round(t[4]), std::round(t[5]));
-    
+
             // Draw rectangles completely inside the image.
             if ( rect.contains(pt[0]) && rect.contains(pt[1]) && rect.contains(pt[2]))
             {
@@ -184,19 +188,19 @@ public:
             Vector2i _p1;
             _p1.x() = t[0];
             _p1.y() = t[1];
-            int _id_p1 = get_key_byValue(_p1); 
+            int _id_p1 = get_key_byValue(_p1);
             Vector2i _p2;
             _p2.x() = t[2];
             _p2.y() = t[3];
-            int _id_p2 = get_key_byValue(_p2); 
+            int _id_p2 = get_key_byValue(_p2);
             Vector2i _p3;
             _p3.x() = t[4];
             _p3.y() = t[5];
-            int _id_p3 = get_key_byValue(_p3); 
+            int _id_p3 = get_key_byValue(_p3);
             Vector3i _tri_idSet = {_id_p1, _id_p2, _id_p3};
             triangle_id_List.push_back(_tri_idSet);
         }
-        
+
         if(_debug){
             cv::Mat dup = landmark_cvMat.clone();
             draw_delaunay(dup, subdiv);
