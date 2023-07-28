@@ -26,7 +26,9 @@ uf = 2 # upscale factor (rendering_res = image_res * upscale factor)
 img_dim = (256, 256)*uf
 
 # Load data
-bfm_trimesh = trimesh.load('../output/after_ColorparamEst.ply')
+# bfm_trimesh = trimesh.load('../output/after_ColorparamEst.ply')
+# face reenactment result
+bfm_trimesh = trimesh.load('../output/after_paramEst_FACEREANACMENT.ply')
 bfm_errormap_trimesh = trimesh = trimesh.load('../output/after_paramEst_errorMap.ply')
 image_path = '../data/EURECOM_Kinect_Face_Dataset/' + str(person_id).zfill(4) + '/s1/RGB/rgb_' + str(person_id).zfill(4) + '_s1_' + expression + '.bmp'
 img = np.asarray(Image.open(image_path).resize(img_dim, resample=Image.BOX))

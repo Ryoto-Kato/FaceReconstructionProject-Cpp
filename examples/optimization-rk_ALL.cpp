@@ -27,7 +27,7 @@ const std::string right_line = "--------";
 
 #define ONLY_SELECTED_LANDMARKS true
 #define ps_ICP true
-#define USE_POINT_TO_PLANE true
+#define USE_POINT_TO_PLANE false
 #define BRUTEFORCE_MATCH_GEO false
 #define BRUTEFORCE_MATCH_TEX false
 #define FACEREANACTMENT true
@@ -601,7 +601,9 @@ int main(int argc, char *argv[])
     }
 
     // Estimate Pose by the ceres optimizer
+    LOG(INFO)<<"Start pose estimation";
     Matrix4f ICP_estimatedPose = landmark_optimizer->estimatePose(FPC_dlib_landmark, FPC_bfm_landmark);
+    LOG(INFO)<<"Finish pose estimation";
 
 // check the estimated pose.
 #ifdef DEBUG
@@ -713,7 +715,9 @@ int main(int argc, char *argv[])
     std::vector<double> estimated_coefs_shape(global_num_shape_pcs);
     std::vector<double> estimated_coefs_tex(global_num_tex_pcs);
     std::vector<double> estimated_coefs_exp(global_num_exp_pcs);
+    LOG(INFO) <<"Start shape and texture estimation";
     std::tie(estimated_coefs_shape, estimated_coefs_tex, estimated_coefs_exp) = optimizer->estimateParams_shape_tex(targetLandmarksMesh, targetMesh, SHAPE, TEX, EXP, _initial_coefs_shape, _initial_coefs_tex, _initial_coefs_exp, bfm, bfm_landmarkIndex_list, averageBFM_triangle_list);
+    LOG(INFO) <<"Finish shape and texture estimation";
 
     delete optimizer;
 
@@ -725,35 +729,35 @@ int main(int argc, char *argv[])
     optimizer_2->setMatchingMaxDistance_dense(1e1);
     optimizer_2->usePointToPlaneConstraints(false);
     optimizer_2->setNbOfIterations(10);
-
+    LOG(INFO) <<"Start expression and texture estimation";
     std::tie(estimated_coefs_shape, estimated_coefs_tex, estimated_coefs_exp) = optimizer_2->estimateParams_exp_tex(targetLandmarksMesh, targetMesh, SHAPE, TEX, EXP, estimated_coefs_shape, estimated_coefs_tex, _initial_coefs_exp, bfm, bfm_landmarkIndex_list, averageBFM_triangle_list);
-
+    LOG(INFO) <<"Finish expression and texture estimation";
     delete optimizer_2;
     // for(unsigned int i = 0; i < global_num_vertices; i++){
     //     std::cout<<"mean r,g,b: "<<TEX.mean[3*i]<<","<<TEX.mean[3*i+1]<<","<<TEX.mean[3*i+2]<<std::endl;
     // }
 
-    // std::cout<<"TEX variance"<<std::endl;
-    for (unsigned int j = 0; j < 199; j++)
-    {
-        double eps = 1e-4;
-        if (TEX.variance(j) <= eps)
-        {
-            TEX.variance(j) = 0.0;
-        }
-        // std::cout<<TEX.variance(j)<<std::endl;
-    }
+    // // std::cout<<"TEX variance"<<std::endl;
+    // for (unsigned int j = 0; j < 199; j++)
+    // {
+    //     double eps = 1e-4;
+    //     if (TEX.variance(j) <= eps)
+    //     {
+    //         TEX.variance(j) = 0.0;
+    //     }
+    //     // std::cout<<TEX.variance(j)<<std::endl;
+    // }
 
-    // std::cout<<"SHAPE variance"<<std::endl;
-    for (unsigned int j = 0; j < 199; j++)
-    {
-        double eps = 1e-4;
-        if (SHAPE.variance(j) <= eps)
-        {
-            SHAPE.variance(j) = 0.0;
-        }
-        // std::cout<<SHAPE.variance(j)<<std::endl;
-    }
+    // // std::cout<<"SHAPE variance"<<std::endl;
+    // for (unsigned int j = 0; j < 199; j++)
+    // {
+    //     double eps = 1e-4;
+    //     if (SHAPE.variance(j) <= eps)
+    //     {
+    //         SHAPE.variance(j) = 0.0;
+    //     }
+    //     // std::cout<<SHAPE.variance(j)<<std::endl;
+    // }
 
     std::fill(estimated_coefs_tex.begin(), estimated_coefs_tex.end(), 0.0);
 
