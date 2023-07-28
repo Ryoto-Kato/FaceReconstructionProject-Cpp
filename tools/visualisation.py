@@ -6,9 +6,11 @@ import matplotlib.colors as mcolors
 from PIL import Image
 
 # Load data
-bfm_trimesh = trimesh.load('../output/after_ColorparamEst.ply')
+# bfm_trimesh = trimesh.load('../output/after_ColorparamEst.ply')
+# face reenactment result
+bfm_trimesh = trimesh.load('../output/after_paramEst_FACEREANACMENT.ply')
 bfm_errormap_trimesh = trimesh = trimesh.load('../output/after_paramEst_errorMap.ply')
-img = np.asarray(Image.open('../data/EURECOM_Kinect_Face_Dataset/0043/s1/RGB/rgb_0043_s1_Smile.bmp'))
+img = np.asarray(Image.open('../data/EURECOM_Kinect_Face_Dataset/0044/s1/RGB/rgb_0044_s1_Neutral.bmp'))
 
 # Define camera model
 camera_pose = np.array([[1,  0,  0,  0],
