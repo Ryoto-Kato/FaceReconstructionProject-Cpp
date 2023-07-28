@@ -1,33 +1,54 @@
 import numpy as np
+import sys
 import trimesh
 import pyrender
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from PIL import Image
 
+# read args
+try:
+    person_id = sys.argv[1]
+except:
+    person_id = 42
+
+try:
+    expression = sys.argv[2]
+except:
+    expression = "Smile"
+
+try:
+    save_figure = sys.argv[3]
+except:
+    save_figure = False
+
+uf = 2 # upscale factor (rendering_res = image_res * upscale factor)
+img_dim = (256, 256)*uf
+
 # Load data
 bfm_trimesh = trimesh.load('../output/after_ColorparamEst.ply')
 bfm_errormap_trimesh = trimesh = trimesh.load('../output/after_paramEst_errorMap.ply')
-img = np.asarray(Image.open('../data/EURECOM_Kinect_Face_Dataset/0043/s1/RGB/rgb_0043_s1_Smile.bmp'))
+image_path = '../data/EURECOM_Kinect_Face_Dataset/' + str(person_id).zfill(4) + '/s1/RGB/rgb_' + str(person_id).zfill(4) + '_s1_' + expression + '.bmp'
+img = np.asarray(Image.open(image_path).resize(img_dim, resample=Image.BOX))
 
 # Define camera model
 camera_pose = np.array([[1,  0,  0,  0],
                         [0, -1,  0,  0],
                         [0,  0, -1,  0],
                         [0,  0,  0,  1],])
-camera = pyrender.IntrinsicsCamera(fx = 525, fy = 525, cx = 127.5, cy = 165.5, zfar=2000)
+camera = pyrender.IntrinsicsCamera(fx = 525*uf, fy = 525*uf, cx = 127.5*uf, cy = 165.5*uf, zfar=2000*uf)
 
 # Render bfm mesh (We are no shading the face model here, just take color ov vertex)
 mesh = pyrender.Mesh.from_trimesh(bfm_trimesh)
-scene = pyrender.Scene(ambient_light=[0.2, 0.2, 0.18], bg_color=[1.0, 1.0, 1,0])
+scene = pyrender.Scene(ambient_light=np.zeros(3), bg_color=[1.0, 1.0, 1,0])
 scene.add(mesh)
 scene.add(camera, pose=camera_pose)
-r = pyrender.OffscreenRenderer(256, 256)
+r = pyrender.OffscreenRenderer(img_dim[0], img_dim[1])
 color, _ = r.render(scene, flags = pyrender.RenderFlags.RGBA | pyrender.RenderFlags.FLAT)
 # make white background pixel transparent
 bfm_img = color.copy()
-for i in range(256):
-    for j in range(256):
+for i in range(img_dim[0]):
+    for j in range(img_dim[1]):
         if np.array_equal(bfm_img[i,j], np.array([255, 255, 255, 255])):
             bfm_img[i,j,3] = 0
 
@@ -36,11 +57,11 @@ mesh = pyrender.Mesh.from_trimesh(bfm_errormap_trimesh)
 scene = pyrender.Scene()
 scene.add(mesh)
 scene.add(camera, pose=camera_pose)
-r = pyrender.OffscreenRenderer(256, 256)
+r = pyrender.OffscreenRenderer(img_dim[0], img_dim[1])
 geometric_error_map_img , _ = r.render(scene, flags = pyrender.RenderFlags.FLAT)
 
 # Generate Plot
-plt.figure(figsize=(30, 10), dpi=60)
+plt.figure(figsize=(24, 8), dpi=32)
 plt.rcParams.update({'font.size': 30})
 
 # Subplot 1: RGB image
@@ -63,4 +84,8 @@ plt.axis('off')
 plt.imshow(img)
 plt.imshow(bfm_img, interpolation='none')
 plt.tight_layout(pad=0.0)
-plt.show()
+
+if save_figure:
+    plt.savefig((str(person_id).zfill(4) + '_s1_' + expression + '_vis.png'), bbox_inches='tight', pad_inches=0.0)
+else:
+    plt.show()
