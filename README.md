@@ -1,5 +1,13 @@
-# Face Reconstruction project (C++, test only on Linux)
+# Face Reconstruction project
+
 In our project, we present an approach for 3D face reconstruction which does not require labor-intensive manual work. Based on a parametric face model, we perform an analysis-by-synthesis loop to reconstruct the 3D face geometry (.ply) from a **single** RGB-D input image (256x256, Kinect v1). **Furthermore**, we apply an expression transfer between a source person and a target person.
+
+## Reconstruction result
+
+  ![reconstruction_result1](./images/reconstruction_result.gif)
+
+  ![reconstruction_result2](./images/Results-3persons.png)
+
 
 # Requirements
 ## main scripts (c++, face reconstruction)
@@ -50,15 +58,15 @@ Parametric Face model
   - In the main scripts, we begin with reading HDF5 and downloading BFM face model principal components (mean, variance, and principal components for SHAPE, COLOR, and EXPRESSION). It followed by back-projection of depth map and 68 landmarks (dlib landmarks, 68dims) detection using Dlib C++ library (pre-trained model) on RGB image. 
 
     ![landmark_detection0](./images/land-detection0.gif)
-    ![landmark_detection0](./images/land-detection2.gif)
+    ![landmark_detection0](./images/back-projection.gif)
 
   - By using hand-picked corresponding landmarks in vertices constituting BFM average mesh (BFM landmarks, 68dims, red_color), we estimate pose of dlib landmarks (green color) by procrustes and Rigid ICP. Applying the estimated pose to the BFM Face model (gray mesh), we will obtain aligned Face model to the given RGBD data. 
 
-    ![stage1](./images/stage1.gif)
- 
+    ![pose-estimation](./images/pose_estimation.gif)
+
   - Finally, analysis by synthesis approach is used to reconstruct face geometry given single RGB image (256px256p) optimizing energy function w.r.t Basel face model parameters for shape(75dim), texture(50dim), and expression(50dim).
 
-    ![stage2](./images/stage2.gif)
+    ![stage2](./images/reconstruction_result.gif)
 
 
 - CMake
@@ -96,7 +104,11 @@ Parametric Face model
       ./tools/*.png
 
 You will get the result of a rendered image like follwing.
+
+
 ![](./images/result_example.png)
+
+
 From left-handside, Input RGB image with selected expression, Geometric error visualization, and rendering result of optimized face mesh on top of RGB input.
 
 ## Entire pipeline
@@ -111,6 +123,6 @@ By editing range of loop or selecting indices of input data, you can run face mo
 
 # Contributors
     Ryoto	Kato
+    Marco	Busch	     
     Ben Robert Sturgis		
-    Kevin	Qu	          	
-    Marco	Busch	        	 	      
+    Kevin	Qu	         	 	      
