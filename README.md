@@ -1,5 +1,13 @@
-# Face Reconstruction project (C++, test only on Linux)
-In our project, we present an approach for 3D face reconstruction which does not require labor-intensive manual work. Based on a parametric face model, we perform an analysis-by-synthesis loop to reconstruct the 3D face geometry (.ply) from a **single** RGB-D input image (256x256, Kinect v1). **Furthermore**, we apply an expression transfer (face re-enactment) between a source person and a target person.
+# Face Reconstruction project
+
+In our project, we present an approach for 3D face reconstruction which does not require labor-intensive manual work. Based on a parametric face model, we perform an analysis-by-synthesis loop to reconstruct the 3D face geometry (.ply) from a **single** RGB-D input image (256x256, Kinect v1). **Furthermore**, we apply an expression transfer between a source person and a target person.
+
+## Reconstruction result
+
+  ![reconstruction_result1](./images/reconstruction_result.gif)
+
+  ![reconstruction_result2](./images/Results-3persons.png)
+
 
 # Requirements
 ## main scripts (C++, face reconstruction)
@@ -50,15 +58,15 @@ Parametric face model
   - In the main scripts, we start by reading the BFM hdf5 file and loading the corresponding data of the face model (mean, variance, and principal components for SHAPE, COLOR, and EXPRESSION). It is followed by back-projection of the depth map and detection of 68 landmarks (dlib landmarks, 68dims) using the dlib C++ library (pre-trained model) on the RGB image. 
 
     ![landmark_detection0](./images/land-detection0.gif)
-    ![landmark_detection0](./images/land-detection2.gif)
+    ![landmark_detection0](./images/back-projection.gif)
 
   - By using hand-picked corresponding landmarks in the BFM average mesh (BFM landmarks, 68dims, red_color), we estimate the pose of the average mesh w.r.t. the dlib landmarks (green color) by using the Procrustes Algorithm (rough initialization) and Rigid ICP (pose refinement). By applying the estimated pose to the BFM average face (gray mesh), we get an aligment between our BFM face model and the input RGB-D data. 
 
-    ![stage1](./images/stage1.gif)
- 
-  - Finally, we reconstruct the 3D face from a single RGB-D image (256x256) by optimizing an energy function w.r.t Basel face model parameters for shape (75dim), texture (50dim), and expression (50dim). The optimization is run in an analysis-by-synthesis fashion.
+    ![pose-estimation](./images/pose_estimation.gif)
 
-    ![stage2](./images/stage2.gif)
+  - Finally, analysis by synthesis approach is used to reconstruct face geometry given single RGB image (256px256p) optimizing energy function w.r.t Basel face model parameters for shape(75dim), texture(50dim), and expression(50dim).
+
+    ![stage2](./images/reconstruction_result.gif)
 
 
 - CMake
@@ -95,13 +103,13 @@ Parametric face model
 
       ./tools/*.png
 
-You will get the result of a rendered image as follows:
+You will get the result of a rendered image like follwing.
 
 
 ![](./images/result_example.png)
 
 
-From left to right: input RGB image with selected expression, geometric error visualization, and rendering result of optimized face mesh on top of RGB input image.
+From left-handside, Input RGB image with selected expression, Geometric error visualization, and rendering result of optimized face mesh on top of RGB input.
 
 ## Entire pipeline
 - How to run with shell scripts
@@ -115,6 +123,6 @@ By modifying the loop range or sprecifying the input data indices, you can run t
 
 # Contributors
     Ryoto	Kato
+    Marco	Busch	     
     Ben Robert Sturgis		
-    Kevin	Qu	          	
-    Marco	Busch	        	 	      
+    Kevin	Qu	         	 	      
