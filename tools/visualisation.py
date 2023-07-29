@@ -26,10 +26,8 @@ uf = 2 # upscale factor (rendering_res = image_res * upscale factor)
 img_dim = (256*uf, 256*uf)
 
 # Load data
-# bfm_trimesh = trimesh.load('../output/after_ColorparamEst.ply')
-# face reenactment result
-bfm_trimesh = trimesh.load('../output/after_paramEst_FACEREANACMENT.ply')
-bfm_errormap_trimesh = trimesh = trimesh.load('../output/after_paramEst_errorMap.ply')
+bfm_trimesh = trimesh.load('../output/after_ColorparamEst.ply')
+bfm_errormap_trimesh = trimesh.load('../output/after_paramEst2_errorMap.ply')
 image_path = '../data/EURECOM_Kinect_Face_Dataset/' + str(person_id).zfill(4) + '/s1/RGB/rgb_' + str(person_id).zfill(4) + '_s1_' + expression + '.bmp'
 img = np.asarray(Image.open(image_path).resize(img_dim, resample=Image.BOX))
 
@@ -89,5 +87,32 @@ plt.tight_layout(pad=0.0)
 
 if save_figure:
     plt.savefig((str(person_id).zfill(4) + '_s1_' + expression + '_vis.png'), bbox_inches='tight', pad_inches=0.0)
+else:
+    plt.show()
+
+# face reenactment result
+bfm_trimesh = trimesh.load('../output/after_paramEst_FACEREANACMENT.ply')
+# Render bfm mesh (We are no shading the face model here, just take color ov vertex)
+mesh = pyrender.Mesh.from_trimesh(bfm_trimesh)
+scene = pyrender.Scene(ambient_light=np.zeros(3), bg_color=[1.0, 1.0, 1,0])
+scene.add(mesh)
+scene.add(camera, pose=camera_pose)
+r = pyrender.OffscreenRenderer(img_dim[0], img_dim[1])
+color, _ = r.render(scene, flags = pyrender.RenderFlags.RGBA | pyrender.RenderFlags.FLAT)
+# make white background pixel transparent
+bfm_img = color.copy()
+for i in range(img_dim[0]):
+    for j in range(img_dim[1]):
+        if np.array_equal(bfm_img[i,j], np.array([255, 255, 255, 255])):
+            bfm_img[i,j,3] = 0
+
+plt.figure(figsize=(8, 8), dpi=64)
+plt.axis('off')
+plt.imshow(img)
+plt.imshow(bfm_img, interpolation='none')
+plt.tight_layout(pad=0.0)
+
+if save_figure:
+    plt.savefig("24_neutral_with_expression_from_44_smile.png", bbox_inches='tight', pad_inches=0.0)
 else:
     plt.show()
