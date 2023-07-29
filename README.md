@@ -96,7 +96,11 @@ Parametric Face model
       ./tools/*.png
 
 You will get the result of a rendered image like follwing.
+
+
 ![](./images/result_example.png)
+
+
 From left-handside, Input RGB image with selected expression, Geometric error visualization, and rendering result of optimized face mesh on top of RGB input.
 
 ## Entire pipeline
