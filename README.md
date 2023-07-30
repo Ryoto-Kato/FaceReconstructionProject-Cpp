@@ -49,8 +49,9 @@ Parametric face model
 # Description
 ## Face model parameter optimization
 - Main scripts and associating header    
-  - Optimizer-rk-ALL.cpp
-  - Optimizer-ALL.h
+    
+      ./src/main.cpp
+      ./include/Optimizer-ALL.h
 
 - Pipeline Overview
 ![Pipeline](./images/pipeline.png)
