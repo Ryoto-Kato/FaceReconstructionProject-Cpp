@@ -10,4 +10,5 @@ data/EURECOM_Kinect_Face_Dataset
 data/excercise-Data
 *.off
 output/
+bin/
 *.ply
