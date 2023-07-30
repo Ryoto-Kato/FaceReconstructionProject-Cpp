@@ -123,8 +123,6 @@ From left-handside, Input RGB image with selected expression, Geometric error vi
 
 By modifying the loop range or sprecifying the input data indices, you can run the face model parameter optimization over multiple inputs via the command line.
 
-## Outputs
-
 # Contributors
     Ryoto	Kato
     Marco	Busch	     
