@@ -101,10 +101,13 @@ Parametric face model
 
 - Outputs
 
-      ./tools/*.png
+      ./tools/[id]_[sessionID]_[expression]_vis.png 
+        (face reconstruction results with geometric error visualization)
+
+      ./tools/[id1]_neutral_with_expression_from_[id2]_smile.png 
+        (face reenactment result by transferring expression from id2 and applying on the id1 face)
 
 You will get the result of a rendered image like following.
-
 
 ![](./images/result_example.png)
 
