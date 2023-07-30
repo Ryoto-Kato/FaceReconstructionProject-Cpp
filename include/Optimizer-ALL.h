@@ -134,15 +134,6 @@ std::vector<Vector3f> get_GeoErrorPointColors(std::vector<float> & dists, float 
 		float ratio = (error-min)/(max-min);
 		float green_ratio = 0.0;
 		float blue_ratio = ratio;
-		// if(ratio >= 0.5){
-		// 	green_ratio = 1.0;
-		// 	blue_ratio = (1-ratio)*2;
-		// }else{
-		// 	green_ratio = ratio*2;
-		// 	blue_ratio = 0.0;
-		// }
-
-		std::cout<<ratio<<std::endl;
 
 		if(ratio<=1.0){
 			Vector3f color = {r*(ratio), 0.0,  g*(1-blue_ratio)};

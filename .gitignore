@@ -12,3 +12,5 @@ data/excercise-Data
 output/
 bin/
 *.ply
+tools/out
+tools/log

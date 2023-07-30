@@ -48,41 +48,10 @@ public:
     }
     
     bool init(int argc, char *argv[], double dFx = 525.0, double dFy = 525.0, double dCx = 319.5f-192.0, double dCy = 239.5f - 74) {
-        // logging
-        // google::InitGoogleLogging(argv[0]); 
-        // FLAGS_logtostderr = false;
-        // if(fs::exists(LOG_PATH)) 
-        //     fs::remove_all(LOG_PATH);
-        // fs::create_directory(LOG_PATH);
-        // FLAGS_alsologtostderr = true;
-        // FLAGS_log_dir = LOG_PATH;
-        // FLAGS_log_prefix = true; 
-        // FLAGS_colorlogtostderr =true;
-
-        // command options
-        // po::options_description opts("Options");
-        // po::variables_map vm;
 
         std::string sBfmH5Path, sLandmarkIdxPath;
         sBfmH5Path = "../data/model2017-1_bfm_nomouth.h5";
         sLandmarkIdxPath = "../data/map_dlib-bfm_rk.anl";
-
-        // try
-        // {
-        //     po::store(po::parse_command_line(argc, argv, opts), vm);
-        // }
-        // catch(...)
-        // {
-        //     LOG(ERROR) << "These exists undefined command options.";
-        //     return -1;
-        // }
-
-        // po::notify(vm);
-        // if(vm.count("help"))
-        // {
-        //     LOG(INFO) << opts;
-        //     return 0;
-        // }
 
         std::array<double, N_INT_PARAMS> aIntParams = { dFx, dFy, dCx, dCy };
         std::unique_ptr<BfmManager> pBfmManager(new BfmManager(sBfmH5Path, aIntParams, sLandmarkIdxPath));

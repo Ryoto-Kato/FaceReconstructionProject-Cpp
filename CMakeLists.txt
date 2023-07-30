@@ -11,6 +11,7 @@ set(Eigen3_DIR ${LIBRARY_DIR}/Eigen/cmake CACHE PATH "Path to installed Eigen")
 add_subdirectory(${LIBRARY_DIR}/dlib dlib_build)
 
 option(MINF "Use" ON)
+
 # Use pre-compiled libraries on Windows
 if(WIN32)
     if(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -22,28 +23,10 @@ if(WIN32)
     endif()
 endif(WIN32)
 
-# set(HDF5_ROOT /usr/local/hdf5)
-# add_compile_options(-std=c++11)
 set(CMAKE_CXX_STANDARD 17)
 if(UNIX)
    add_compile_options(-fPIC)
 endif()
-
-# add_library(pose_estimation SHARED ../src/pose_estimation.cpp)
-# set(HEADERS
-#       ./include/Eigen.h
-#       ./include/BFM.h
-#       ./include/FacialLandmarkExtractor.h
-#       ./include/ProcrustesAligner.h
-#       ./include/RGBImage.h
-#       ./include/SimpleMesh.h
-#       ./include/bfm_manager.h
-#       ./include/constant.h
-#       ./include/data.hpp
-#       ./include/random.hpp
-#       ./include/transform.hpp
-#       ./include/type_utils.hpp
-# )
 
 set(SOURCES
    ./include/bfm_manager.cpp
@@ -53,9 +36,6 @@ set(SOURCES
 add_library(face_reconstruction SHARED ${SOURCES})
 target_compile_features(face_reconstruction PRIVATE cxx_std_17)
 
-# set(HDF5_ROOT /usr/local/hdf5)
-# set(HDF5_LIBRARIES /usr/local/hdf5/lib)
-# set(HDF5_INCLUDE_DIRS /usr/local/hdf5/include)
 find_package(HDF5 REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(Ceres REQUIRED)
@@ -64,9 +44,6 @@ add_definitions("-D_DISABLE_EXTENDED_ALIGNED_STORAGE")
 if (MSVC)
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /bigobj")
 endif()
-###############################################################################################
-######################################## Dedendenflanncy ###########################################
-###############################################################################################
 
 if(CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -Wall -Wextra -Wundef -pedantic")
@@ -78,11 +55,8 @@ if(UNIX)
    include_directories("/usr/include/eigen3")
 endif()
 
-# Hdf5
-# Explicitely list required HDF5 components
-# find_package(HDF5 COMPONENTS C CXX HL REQUIRED)
+#HDF5
 include_directories(${HDF5_INCLUDE_DIRS})
-# set(HDF5_CXX_LIBRARIES /home/ryotok/library/c++_lib/CMake-hdf5-1.12.2/hdf5-1.12.2/hdf5/lib)
 
 #freeimage
 link_directories(${FreeImage_LIBRARY_DIR})
@@ -128,86 +102,15 @@ message(STATUS "path to opencv lib information: ${OpenCV_LIBS}")
 
 
 link_directories(${FreeImage_LIBRARY_DIR})
-# Bfm Manager
+
 target_include_directories(face_reconstruction PUBLIC ./include ${OpenCV_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR} ${FreeImage_INCLUDE_DIR} ${Ceres_INCLUDE_DIR} ${glog_INCLUDE_DIR} ${Flann_INCLUDE_DIR})
 target_link_libraries(face_reconstruction m ${OpenCV_LIBS} ${HDF5_LIBRARIES} ${HDF5_CXX_LIBRARIES} ${Boost_LIBRARIES} glog::glog boost_filesystem dlib::dlib Eigen3::Eigen freeimage Ceres::ceres flann::flann)
-
-###############################################################################################
-######################################## Options ##############################################
-###############################################################################################
-
-OPTION(BFM_INIT "Generate usage examples to get BFM components." OFF)
-if(BFM_INIT)
-   add_executable(bfm_init examples/bfm_init.cpp)
-   target_link_libraries(bfm_init face_reconstruction)
-endif()
-
-OPTION(POSE_ESTIMATION "Pose estimation given dlib landmarks and bfm landmarks and write both .ply." OFF)
-if(POSE_ESTIMATION)
-   add_executable(pose_estimation examples/pose_estimation.cpp)
-   target_link_libraries(pose_estimation face_reconstruction)
-endif()
-
-OPTION(PARAMS_ESTIMATION "Parameter estimation and write result in .ply." OFF)
-if(PARAMS_ESTIMATION)
-   add_executable(params_estimation examples/parameter_estimation.cpp)
-   target_link_libraries(params_estimation face_reconstruction)
-endif()
-
-OPTION(BUNNY_PROCRUSTES "Align stanford bunny." OFF)
-if(BUNNY_PROCRUSTES)
-   add_executable(bunny_procrustes examples/bunny_procrustes.cpp)
-   target_link_libraries(bunny_procrustes face_reconstruction)
-endif()
-
-OPTION(PROCRUSTES_PE "Inplement pose estimation by Procrustes." OFF)
-if(PROCRUSTES_PE)
-   add_executable(procrustes_pe examples/procrustes_pe.cpp)
-   target_link_libraries(procrustes_pe face_reconstruction)
-endif()
-
-OPTION(ICP_PE "Inplement pose estimation by Rigid ICP." OFF)
-if(ICP_PE)
-   add_executable(icp_pe examples/icp_pe.cpp)
-   target_link_libraries(icp_pe face_reconstruction)
-endif()
-
-OPTION(GEN_BFM_EXAMPLES "Generate usage examples of Basel Face Moldel manager." OFF)
-if(GEN_BFM_EXAMPLES)
-   add_executable(gen_faces examples/ex_gen_faces.cpp)
-   target_link_libraries(gen_faces face_reconstruction)
-endif()
-
-OPTION(UTILS_EXAMPLE "How to use entire CMakeProject." OFF)
-if(UTILS_EXAMPLE)
-   add_executable(utils_example examples/utils.cpp)
-   target_link_libraries(utils_example face_reconstruction)
-endif()
-
-OPTION(CERES_EXAMPLE "Ceres optimizer example from exercise 5." OFF)
-if(CERES_EXAMPLE)
-   add_executable(ceres_example examples/example_ceres_optimizer.cpp)
-   target_link_libraries(ceres_example face_reconstruction)
-endif()
-
-OPTION(OPTIMIZATION_EXAMPLE "Ceres optimizer example from exercise 5." OFF)
-if(OPTIMIZATION_EXAMPLE)
-   add_executable(optimization_example examples/optimization-rk.cpp)
-   target_link_libraries(optimization_example face_reconstruction)
-endif()
-
-OPTION(OPTIMIZATION_EXAMPLE_SPARSE "Ceres optimizer for sparse." OFF)
-if(OPTIMIZATION_EXAMPLE_SPARSE)
-   add_executable(optimization_example_sparse examples/optimization-rk_sparse.cpp)
-   target_link_libraries(optimization_example_sparse face_reconstruction)
-endif()
 
 OPTION(OPTIMIZATION_EXAMPLE_ALL "Ceres optimizer for sparse." ON)
 if(OPTIMIZATION_EXAMPLE_ALL)
    add_executable(optimization_example_all examples/optimization-rk_ALL.cpp)
    target_link_libraries(optimization_example_all face_reconstruction)
 endif()
-
 
 if(WIN32)
     # Visual Studio properties
@@ -216,7 +119,12 @@ if(WIN32)
 
     # On Windows copy dll to executable folder
     add_custom_command(TARGET exercise_1 POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        COMMAND ${CMAKE_COMMAND} OPTION(OPTIMIZATION_EXAMPLE_ALL "Ceres optimizer for sparse." ON)
+        if(OPTIMIZATION_EXAMPLE_ALL)
+           add_executable(optimization_example_all examples/optimization-rk_ALL.cpp)
+           target_link_libraries(optimization_example_all face_reconstruction)
+        endif()
+        -E copy_if_different
             "${FreeImage_LIBRARY_DIR}/FreeImage.dll"
             ${CMAKE_BINARY_DIR})
 endif(WIN32)

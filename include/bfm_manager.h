@@ -1,7 +1,4 @@
-﻿// This file is part of BFM Manager (https://github.com/Great-Keith/BFM-tools).
-
-
-#ifndef BFM_MANAGER_H
+﻿#ifndef BFM_MANAGER_H
 #define BFM_MANAGER_H
 
 

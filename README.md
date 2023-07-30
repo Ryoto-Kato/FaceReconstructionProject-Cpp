@@ -103,7 +103,7 @@ Parametric face model
 
       ./tools/*.png
 
-You will get the result of a rendered image like follwing.
+You will get the result of a rendered image like following.
 
 
 ![](./images/result_example.png)
