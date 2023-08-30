@@ -1,6 +1,6 @@
-# Face Reconstruction project (Group 4)
+# Face Reconstruction project
 
-In our project, we present an approach for 3D face reconstruction which does not require labor-intensive manual work. Based on a parametric face model, we perform an analysis-by-synthesis loop to reconstruct the 3D face geometry (.ply) from a **single** RGB-D input image (256x256, Kinect v1). **Furthermore**, we apply an expression transfer between a source person and a target person.
+In our project, we present an approach for 3D face reconstruction which does not require labour-intensive manual work. Based on a parametric face model, we perform an analysis-by-synthesis loop to reconstruct the 3D face geometry (.ply) from a **single** RGB-D input image (256x256, Kinect v1). **Furthermore**, we apply an expression transfer between a source person and a target person.
 
 ## Reconstruction result
 
@@ -61,7 +61,7 @@ Parametric face model
     ![landmark_detection0](./images/land-detection0.gif)
     ![landmark_detection0](./images/back-projection.gif)
 
-  - By using hand-picked corresponding landmarks in the BFM average mesh (BFM landmarks, 68dims, red_color), we estimate the pose of the average mesh w.r.t. the dlib landmarks (green color) by using the Procrustes Algorithm (rough initialization) and Rigid ICP (pose refinement). By applying the estimated pose to the BFM average face (gray mesh), we get an aligment between our BFM face model and the input RGB-D data. 
+  - By using hand-picked corresponding landmarks in the BFM average mesh (BFM landmarks, 68dims, red_color), we estimate the pose of the average mesh w.r.t. the dlib landmarks (green colour) by using the Procrustes Algorithm (rough initialization) and Rigid ICP (pose refinement). By applying the estimated pose to the BFM average face (gray mesh), we get an alignment between our BFM face model and the input RGB-D data. 
 
     ![pose-estimation](./images/pose_estimation.gif)
 
@@ -108,20 +108,20 @@ Parametric face model
       ./tools/[id1]_neutral_with_expression_from_[id2]_smile.png 
         (face reenactment result by transferring expression from id2 and applying on the id1 face)
 
-You will get the result of a rendered image like following.
+You will get the result of a rendered image like the following.
 
 ![](./images/result_example.png)
 
 
-From left-handside, Input RGB image with selected expression, Geometric error visualization, and rendering result of optimized face mesh on top of RGB input.
+From the left-hand side, Input RGB image with selected expression, Geometric error visualization, and rendering result of optimized face mesh on top of RGB input.
 
-## Entire pipeline
+## Entire Pipeline
 - How to run with shell scripts
 
       tools
       zsh/bash batch_process.sh
 
-By modifying the loop range or sprecifying the input data indices, you can run the face model parameter optimization over multiple inputs via the command line.
+By modifying the loop range or specifying the input data indices, you can run the face model parameter optimization over multiple inputs via the command line.
 
 # Contributors
     Ryoto	Kato
